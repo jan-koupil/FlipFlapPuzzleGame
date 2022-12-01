@@ -91,18 +91,16 @@ public class GameScript : MonoBehaviour
         {
             Bounds currentBounds = flipper.GetComponent<MeshFilter>().mesh.bounds;
             Vector3 scale = flipper.transform.localScale;
-            Vector3 extents = ScaleVector(currentBounds.extents, scale);
-            Vector3 maxV = flipper.transform.position + extents;
-            Vector3 minV = flipper.transform.position - extents;
+            Vector3 size = ScaleVector(currentBounds.size, scale);
+            Bounds realBounds = new(flipper.transform.position, size);
             if (first)
             {
-                bounds = new Bounds(flipper.transform.position, extents * 2);
+                bounds = realBounds;
                 first = false;
             }
             else
-            { 
-                bounds.Encapsulate(maxV);
-                bounds.Encapsulate(minV);
+            {
+                bounds.Encapsulate(realBounds);
             }
         }
 
@@ -181,7 +179,6 @@ public class GameScript : MonoBehaviour
     {
         overlappingTile.transform.localScale *= 0.95f;
         Rigidbody currentRb = overlappingTile.AddComponent<Rigidbody>();
-        // You can even access the rigidbody with no effort
         currentRb.detectCollisions = true;
         _flippers.Remove(overlappingTile);
         _gameOver = true;
