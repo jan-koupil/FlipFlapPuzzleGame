@@ -8,26 +8,30 @@ public class GameScript : MonoBehaviour
 {
     // Start is called before the first frame update
     
-    public float RollSpeed = 3;
-    public Material FlippingMaterial;
     public GameObject FloorTile;
+    public GameObject FlipTile;
+
+    public Material FlippingMaterial;
+    public Material PassiveMaterial;
+    public Material TargetMaterial;
+
+    public float RollSpeed = 3;
 
     private bool _isRolling;
     private bool _gameOver;
-    private const int _tileSize = 1;
-    private List<GameObject> _floor = new();
 
+    private const int _tileSize = 1;
     
+    private List<GameObject> _floor = new();
+    private List<GameObject> _target = new();
+    private List<GameObject> _flippers = new();
+    private List<GameObject> _passives = new();
+
+
     void Start()
     {
-        _gameOver = false;
-        for (int x = -6; x < 6; x++)
-        {
-            for (int z = -6; z < 6; z++)
-            {
-                _floor.Add(Instantiate(FloorTile, new Vector3(x * _tileSize, -0.25f, z * _tileSize), Quaternion.identity));
-            }
-        }
+        _gameOver = false;        
+        BuildGame();
     }
 
     // Update is called once per frame
@@ -35,9 +39,6 @@ public class GameScript : MonoBehaviour
     {
         //Bounds bounds = flippers.Aggregate(new Bounds(), (b, go) => b.Encapsulate());
         if (_isRolling) return;
-
-
-
 
         //if (Input.GetKeyDown(KeyCode.Space))
         //{
@@ -51,8 +52,7 @@ public class GameScript : MonoBehaviour
         //}
 
         if (!_gameOver && Input.anyKey) {
-            var flippers = GetFlippers();
-            Bounds bounds = GetFlipperBounds(flippers);
+            Bounds bounds = GetFlipperBounds(_flippers);
 
             if (Input.GetKey(KeyCode.W))
                 StartFlipping(Vector3.forward);
@@ -69,7 +69,7 @@ public class GameScript : MonoBehaviour
                 bounds.IntersectRay(flipDirRay, out float distance);
                 var anchor = flipDirRay.GetPoint(distance);
                 var axis = Vector3.Cross(Vector3.up, direction);
-                StartCoroutine(Flip(flippers, anchor, axis));
+                StartCoroutine(Flip(_flippers, anchor, axis));
             }
         }
 
@@ -79,12 +79,8 @@ public class GameScript : MonoBehaviour
     {
         return new Vector3(vector.x * scale.x, vector.y * scale.y, vector.z * scale.z);
     }
-    private GameObject[] GetFlippers()
-    {
-        return GameObject.FindGameObjectsWithTag("Flipping");
-    }
 
-    private Bounds GetFlipperBounds(GameObject[] flippers)
+    private Bounds GetFlipperBounds(List<GameObject> flippers)
     {
         bool first = true;
         Bounds bounds = new();
@@ -111,7 +107,7 @@ public class GameScript : MonoBehaviour
         return bounds;
     }
 
-    IEnumerator Flip(GameObject[] flippers, Vector3 anchor, Vector3 axis)
+    IEnumerator Flip(List<GameObject> flippers, Vector3 anchor, Vector3 axis)
     {
         _isRolling = true;
 
@@ -131,20 +127,13 @@ public class GameScript : MonoBehaviour
 
     private void MergeAdjacentTiles()
     {
-        GameObject[] flippers = GetFlippers();
-        GameObject[] passives = GameObject.FindGameObjectsWithTag("Passive");
-        
-        Debug.Log(flippers.Length);
-        Debug.Log(passives.Length);
-
         bool runAgain = false;
 
-        foreach (GameObject flipper in flippers)
+        foreach (GameObject flipper in _flippers.ToArray())
         {
-            foreach(GameObject passive in passives)
+            foreach(GameObject passive in _passives.ToArray())
             {
                 float distance = Vector3.Distance(flipper.transform.position, passive.transform.position);
-                Debug.Log(distance);
                 if (distance < 1.1f * _tileSize)
                 {
                     ActivateTile(passive);
@@ -161,15 +150,14 @@ public class GameScript : MonoBehaviour
 
     private void ActivateTile(GameObject passiveTile)
     {
-        passiveTile.tag = "Flipping";
         passiveTile.GetComponent<MeshRenderer>().material = FlippingMaterial;
+        _flippers.Add(passiveTile);
+        _passives.Remove(passiveTile);
     }
 
     private void FindAndBreakOverlaps()
     {
-        GameObject[] flippers = GetFlippers();
-
-        foreach (GameObject flipper in flippers)
+        foreach (GameObject flipper in _flippers.ToArray())
         {
             float minDist = float.MaxValue;
 
@@ -192,7 +180,36 @@ public class GameScript : MonoBehaviour
         Rigidbody currentRb = overlappingTile.AddComponent<Rigidbody>();
         // You can even access the rigidbody with no effort
         currentRb.detectCollisions = true;
-        overlappingTile.tag = "Broken";
+        _flippers.Remove(overlappingTile);
         _gameOver = true;
+    }
+
+    private void BuildGame()
+    {
+        for (int x = -6; x < 6; x++)
+        {
+            for (int z = -6; z < 6; z++)
+            {
+                _floor.Add(Instantiate(FloorTile, new Vector3(x * _tileSize, -0.25f, z * _tileSize), Quaternion.identity));
+            }
+        }
+
+        GameObject firstTile = Instantiate(FlipTile, new Vector3(2 * _tileSize, 0.05f * _tileSize, 1 * _tileSize), Quaternion.identity);
+        firstTile.GetComponent<MeshRenderer>().material = FlippingMaterial;
+        _flippers.Add(firstTile);
+
+
+        GameObject passive1 = Instantiate(FlipTile, new Vector3(0 * _tileSize, 0.05f * _tileSize, 1 * _tileSize), Quaternion.identity);
+        passive1.GetComponent<MeshRenderer>().material = PassiveMaterial;
+        _passives.Add(passive1);
+
+        GameObject passive2 = Instantiate(FlipTile, new Vector3(-2 * _tileSize, 0.05f * _tileSize, 3 * _tileSize), Quaternion.identity);
+        passive2.GetComponent<MeshRenderer>().material = PassiveMaterial;
+        _passives.Add(passive2);
+
+        GameObject passive3 = Instantiate(FlipTile, new Vector3(1 * _tileSize, 0.05f * _tileSize, 3 * _tileSize), Quaternion.identity);
+        passive1.GetComponent<MeshRenderer>().material = PassiveMaterial;
+        _passives.Add(passive3);
+
     }
 }
