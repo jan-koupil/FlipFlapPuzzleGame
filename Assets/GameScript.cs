@@ -17,10 +17,12 @@ public class GameScript : MonoBehaviour
     public Material FloorMaterial;
     public Material TargetMaterial;
 
-    public float RollSpeed = 3;
+    public float RollSpeed;
+    public float RiseSpeed;
+    public float RiseHeight;
 
     private bool _isRolling;
-    private bool _gameOver;
+    private GameState _gameState;
 
     private const int _tileSize = 1;
     
@@ -29,12 +31,13 @@ public class GameScript : MonoBehaviour
     private List<GameObject> _flippers = new();
     private List<GameObject> _passives = new();
 
-    private enum TileTipe : byte { Flipping, Passive, Floor, Target, Hole }
+    private enum GameState : byte { Running, Win, Fail }
+    private enum TileTipe : byte { Hole, Flipping, Passive, Floor, Target }
 
 
     void Start()
     {
-        _gameOver = false;
+        _gameState = GameState.Running;
         
         string textMap = 
             "XXXXXXX\n" +
@@ -51,9 +54,9 @@ public class GameScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (_isRolling) return;
+        if (_isRolling || _gameState != GameState.Running) return;
 
-        if (!_gameOver && Input.anyKey) {
+        if (Input.anyKey) {
             Bounds bounds = GetFlipperBounds(_flippers);
 
             if (Input.GetKey(KeyCode.W))
@@ -125,6 +128,21 @@ public class GameScript : MonoBehaviour
         MergeAdjacentTiles();
     }
 
+    IEnumerator Highlight(List<GameObject> endObjects)
+    {
+        float steps = RiseHeight * _tileSize / RiseSpeed;
+        Debug.Log(steps);
+        for (int i = 0; i < steps; i++)
+        {
+            foreach (GameObject go in endObjects)
+            {
+                go.transform.position +=  Vector3.up * RiseSpeed * _tileSize;
+            }
+            //yield return null;
+            yield return new WaitForSeconds(0.01f);
+        }
+    }
+
     private void MergeAdjacentTiles()
     {
         bool runAgain = false;
@@ -181,7 +199,7 @@ public class GameScript : MonoBehaviour
         Rigidbody currentRb = overlappingTile.AddComponent<Rigidbody>();
         currentRb.detectCollisions = true;
         _flippers.Remove(overlappingTile);
-        _gameOver = true;
+        _gameState = GameState.Fail;
     }
 
     private void BuildGame(TileTipe[,] map)
@@ -292,4 +310,10 @@ public class GameScript : MonoBehaviour
             _flippers.Add(tile);
     }
 
+    private void Win()
+    {
+        StartCoroutine(Highlight(_targetTiles));
+        StartCoroutine(Highlight(_flippers));
+        _gameState = GameState.Win;
+    }
 }
