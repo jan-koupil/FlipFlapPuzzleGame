@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class GameScript : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class GameScript : MonoBehaviour
 
     public Material FlippingMaterial;
     public Material PassiveMaterial;
+    public Material FloorMaterial;
     public Material TargetMaterial;
 
     public float RollSpeed = 3;
@@ -23,33 +25,33 @@ public class GameScript : MonoBehaviour
     private const int _tileSize = 1;
     
     private List<GameObject> _floor = new();
-    private List<GameObject> _target = new();
+    private List<GameObject> _targetTiles = new();
     private List<GameObject> _flippers = new();
     private List<GameObject> _passives = new();
+
+    private enum TileTipe : byte { Flipping, Passive, Floor, Target, Hole }
 
 
     void Start()
     {
-        _gameOver = false;        
-        BuildGame();
+        _gameOver = false;
+        
+        string textMap = 
+            "XXXXXXX\n" +
+            "XFXXPXX\n" +
+            "XXPXXXX\n" +
+            "XXX XXX\n" +
+            "XXTTXXX\n" +
+            "XXTXXXX\n" +
+            "XXXXXXX\n";
+
+        BuildGame(ParseTextMap(textMap));
     }
 
     // Update is called once per frame
     void Update()
     {
-        //Bounds bounds = flippers.Aggregate(new Bounds(), (b, go) => b.Encapsulate());
         if (_isRolling) return;
-
-        //if (Input.GetKeyDown(KeyCode.Space))
-        //{
-
-        //    Debug.Log("Next one");
-        //    Debug.Log(bounds.center);
-        //    Debug.Log(bounds.size);
-        //    Debug.Log(bounds.extents);
-        //    Debug.Log(bounds.max);
-        //    Debug.Log(bounds.min);
-        //}
 
         if (!_gameOver && Input.anyKey) {
             Bounds bounds = GetFlipperBounds(_flippers);
@@ -177,6 +179,7 @@ public class GameScript : MonoBehaviour
 
     private void BreakOverlap(GameObject overlappingTile)
     {
+        overlappingTile.transform.localScale *= 0.95f;
         Rigidbody currentRb = overlappingTile.AddComponent<Rigidbody>();
         // You can even access the rigidbody with no effort
         currentRb.detectCollisions = true;
@@ -184,32 +187,112 @@ public class GameScript : MonoBehaviour
         _gameOver = true;
     }
 
-    private void BuildGame()
+    private void BuildGame(TileTipe[,] map)
     {
-        for (int x = -6; x < 6; x++)
+        _floor = new();
+        _targetTiles = new();
+        _flippers = new();
+        _passives = new();
+
+        int height = map.GetLength(0);
+        int width = map.GetLength(1);
+        int shiftX = width / 2;
+        int shiftY = height / 2;
+
+        for (int y = 0; y < height; y++)
         {
-            for (int z = -6; z < 6; z++)
+            for (int x = 0; x < width; x++)
             {
-                _floor.Add(Instantiate(FloorTile, new Vector3(x * _tileSize, -0.25f, z * _tileSize), Quaternion.identity));
+                Vector3 location = new((x - shiftX) * _tileSize, 0f, (y - shiftY) * _tileSize);
+                switch (map[y, x])
+                {
+                    case TileTipe.Flipping:
+                        PutFlipperAt(location);
+                        PutFloorAt(location);
+                        break;
+
+                    case TileTipe.Passive:
+                        PutFlipperAt(location, true);
+                        PutFloorAt(location);
+                        break;
+
+                    case TileTipe.Floor:
+                        PutFloorAt(location);
+                        break;
+
+                    case TileTipe.Target:
+                        PutFloorAt(location, true);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+    private TileTipe[,] ParseTextMap(string textMap)
+    {
+        string[] lines = textMap.Replace('\r','\n').Replace("\n\n", "\n").Split('\n');
+        int height = 0;
+        int width = 0;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            if (lines[i].Length > 0)
+            {
+                height = i + 1;
+                width = lines[i].Length;
+            }
+            else
+            {
+                break;
             }
         }
 
-        GameObject firstTile = Instantiate(FlipTile, new Vector3(2 * _tileSize, 0.05f * _tileSize, 1 * _tileSize), Quaternion.identity);
-        firstTile.GetComponent<MeshRenderer>().material = FlippingMaterial;
-        _flippers.Add(firstTile);
+        TileTipe[,] map = new TileTipe[height, width];
 
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                map[y, x] = lines[y][x] switch
+                {
+                    'X' => TileTipe.Floor,
+                    'F' => TileTipe.Flipping,
+                    'P' => TileTipe.Passive,
+                    'T' => TileTipe.Target,
+                    _ => TileTipe.Hole
+                };
+            }
+        }
 
-        GameObject passive1 = Instantiate(FlipTile, new Vector3(0 * _tileSize, 0.05f * _tileSize, 1 * _tileSize), Quaternion.identity);
-        passive1.GetComponent<MeshRenderer>().material = PassiveMaterial;
-        _passives.Add(passive1);
-
-        GameObject passive2 = Instantiate(FlipTile, new Vector3(-2 * _tileSize, 0.05f * _tileSize, 3 * _tileSize), Quaternion.identity);
-        passive2.GetComponent<MeshRenderer>().material = PassiveMaterial;
-        _passives.Add(passive2);
-
-        GameObject passive3 = Instantiate(FlipTile, new Vector3(1 * _tileSize, 0.05f * _tileSize, 3 * _tileSize), Quaternion.identity);
-        passive1.GetComponent<MeshRenderer>().material = PassiveMaterial;
-        _passives.Add(passive3);
-
+        return map;
     }
+
+    private void PutFloorAt(Vector3 location, bool isTarget = false)
+    {
+        location.y = -0.25f * _tileSize;
+        GameObject tile = Instantiate(FloorTile, location, Quaternion.identity);
+        Material material = isTarget ? TargetMaterial : FloorMaterial;
+        foreach (Transform child in tile.transform)
+            child.gameObject.GetComponent<MeshRenderer>().material = material;
+
+        _floor.Add(tile);
+
+        if (isTarget)
+            _targetTiles.Add(tile);
+    }
+    private void PutFlipperAt(Vector3 location, bool isPassive = false)
+    {
+        location.y = 0.05f * _tileSize;
+        GameObject tile = Instantiate(FlipTile, location, Quaternion.identity);
+        Material material = isPassive ? PassiveMaterial : FlippingMaterial;
+        tile.GetComponent<MeshRenderer>().material = material;
+
+        if (isPassive)
+            _passives.Add(tile);
+        else
+            _flippers.Add(tile);
+    }
+
 }
