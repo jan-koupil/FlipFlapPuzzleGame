@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using static UnityEngine.GraphicsBuffer;
 public class GameScript : MonoBehaviour
 {
     // Start is called before the first frame update
-    
+
     public GameObject FloorTile;
     public GameObject FlipTile;
 
@@ -25,47 +26,66 @@ public class GameScript : MonoBehaviour
     private GameState _gameState;
 
     private const int _tileSize = 1;
-    
-    private List<GameObject> _floor = new();
-    private List<GameObject> _targetTiles = new();
-    private List<GameObject> _flippers = new();
-    private List<GameObject> _passives = new();
+
+    private List<GameObject> _floor = null;
+    private List<GameObject> _targetTiles = null;
+    private List<GameObject> _flippers = null;
+    private List<GameObject> _passives = null;
+
+    private TileType[,] _gameMap;
 
     private enum GameState : byte { Running, Win, Fail }
-    private enum TileTipe : byte { Hole, Flipping, Passive, Floor, Target }
-
+    private enum TileType : byte { Hole, Flipping, Passive, Floor, Target }
 
     void Start()
     {
         _gameState = GameState.Running;
-        
-        string textMap = 
+
+        string textMap =
             "XXXXXXX\n" +
-            "XFXXPXX\n" +
+            "XFXXXXX\n" +
             "XXPXXXX\n" +
-            "XXX XXX\n" +
+            "XXX PXX\n" +
             "XXTTXXX\n" +
             "XXTXXXX\n" +
             "XXXXXXX\n";
 
-        BuildGame(ParseTextMap(textMap));
+        //string textMap =
+        //    "XXXX\n" +
+        //    "XFXX\n" +
+        //    "XXTX\n" +
+        //    "XXXX\n";
+
+        //string textMap =
+        //    "XXXX\n" +
+        //    "XFXX\n" +
+        //    "TXPX\n" +
+        //    "TXXX\n";
+
+        _gameMap = ParseTextMap(textMap);
+        BuildGame(_gameMap);
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (_isRolling || _gameState != GameState.Running) return;
+        if (Input.GetKeyDown(KeyCode.Backspace) && _gameState != GameState.Win)
+            BuildGame(_gameMap);
 
-        if (Input.anyKey) {
+        if (_isRolling || _gameState != GameState.Running) 
+            return;
+
+        if (Input.anyKey)
+        {
             Bounds bounds = GetFlipperBounds(_flippers);
 
-            if (Input.GetKey(KeyCode.W))
+            if (Input.GetKey(KeyCode.A))
                 StartFlipping(Vector3.forward);
-            else if (Input.GetKey(KeyCode.S))
+            else if (Input.GetKey(KeyCode.Z))
                 StartFlipping(Vector3.back);
-            else if (Input.GetKey(KeyCode.A))
+            else if (Input.GetKey(KeyCode.N))
                 StartFlipping(Vector3.left);
-            else if (Input.GetKey(KeyCode.D))
+            else if (Input.GetKey(KeyCode.M))
                 StartFlipping(Vector3.right);
 
             void StartFlipping(Vector3 direction)
@@ -80,7 +100,7 @@ public class GameScript : MonoBehaviour
 
     }
 
-    private Vector3 ScaleVector (Vector3 vector, Vector3 scale)
+    private Vector3 ScaleVector(Vector3 vector, Vector3 scale)
     {
         return new Vector3(vector.x * scale.x, vector.y * scale.y, vector.z * scale.z);
     }
@@ -116,7 +136,7 @@ public class GameScript : MonoBehaviour
 
         for (int i = 0; i < (180 / RollSpeed); i++)
         {
-            foreach(var flipper in flippers)
+            foreach (var flipper in flippers)
             {
                 flipper.transform.RotateAround(anchor, axis, RollSpeed);
             }
@@ -125,18 +145,22 @@ public class GameScript : MonoBehaviour
         }
 
         _isRolling = false;
+
         MergeAdjacentTiles();
+        FindAndBreakOverlaps();
+
+        if (_gameState == GameState.Running)
+            CheckVictory();
     }
 
     IEnumerator Highlight(List<GameObject> endObjects)
     {
         float steps = RiseHeight * _tileSize / RiseSpeed;
-        Debug.Log(steps);
         for (int i = 0; i < steps; i++)
         {
             foreach (GameObject go in endObjects)
             {
-                go.transform.position +=  Vector3.up * RiseSpeed * _tileSize;
+                go.transform.position += Vector3.up * RiseSpeed * _tileSize;
             }
             //yield return null;
             yield return new WaitForSeconds(0.01f);
@@ -149,7 +173,7 @@ public class GameScript : MonoBehaviour
 
         foreach (GameObject flipper in _flippers.ToArray())
         {
-            foreach(GameObject passive in _passives.ToArray())
+            foreach (GameObject passive in _passives.ToArray())
             {
                 float distance = Vector3.Distance(flipper.transform.position, passive.transform.position);
                 if (distance < 1.1f * _tileSize)
@@ -162,8 +186,6 @@ public class GameScript : MonoBehaviour
 
         if (runAgain)
             MergeAdjacentTiles();
-
-        FindAndBreakOverlaps();
     }
 
     private void ActivateTile(GameObject passiveTile)
@@ -202,12 +224,19 @@ public class GameScript : MonoBehaviour
         _gameState = GameState.Fail;
     }
 
-    private void BuildGame(TileTipe[,] map)
+    private void BuildGame(TileType[,] map)
     {
+        DestroyAll(_floor);
+        DestroyAll(_targetTiles);
+        DestroyAll(_flippers);
+        DestroyAll(_passives);
+
         _floor = new();
         _targetTiles = new();
         _flippers = new();
         _passives = new();
+
+        _gameState = GameState.Running;
 
         int height = map.GetLength(0);
         int width = map.GetLength(1);
@@ -221,21 +250,21 @@ public class GameScript : MonoBehaviour
                 Vector3 location = new((x - shiftX) * _tileSize, 0f, (y - shiftY) * _tileSize);
                 switch (map[y, x])
                 {
-                    case TileTipe.Flipping:
+                    case TileType.Flipping:
                         PutFlipperAt(location);
                         PutFloorAt(location);
                         break;
 
-                    case TileTipe.Passive:
+                    case TileType.Passive:
                         PutFlipperAt(location, true);
                         PutFloorAt(location);
                         break;
 
-                    case TileTipe.Floor:
+                    case TileType.Floor:
                         PutFloorAt(location);
                         break;
 
-                    case TileTipe.Target:
+                    case TileType.Target:
                         PutFloorAt(location, true);
                         break;
 
@@ -246,9 +275,18 @@ public class GameScript : MonoBehaviour
         }
     }
 
-    private TileTipe[,] ParseTextMap(string textMap)
+    private void DestroyAll(List<GameObject> objects)
     {
-        string[] lines = textMap.Replace('\r','\n').Replace("\n\n", "\n").Split('\n');
+        if (objects == null)
+            return;
+
+        foreach (GameObject go in objects)
+            try { Destroy(go); } catch (Exception) { };
+    }
+
+    private TileType[,] ParseTextMap(string textMap)
+    {
+        string[] lines = textMap.Replace('\r', '\n').Replace("\n\n", "\n").Split('\n');
         int height = 0;
         int width = 0;
         for (int i = 0; i < lines.Length; i++)
@@ -264,7 +302,7 @@ public class GameScript : MonoBehaviour
             }
         }
 
-        TileTipe[,] map = new TileTipe[height, width];
+        TileType[,] map = new TileType[height, width];
 
         for (int y = 0; y < height; y++)
         {
@@ -272,11 +310,11 @@ public class GameScript : MonoBehaviour
             {
                 map[y, x] = lines[y][x] switch
                 {
-                    'X' => TileTipe.Floor,
-                    'F' => TileTipe.Flipping,
-                    'P' => TileTipe.Passive,
-                    'T' => TileTipe.Target,
-                    _ => TileTipe.Hole
+                    'X' => TileType.Floor,
+                    'F' => TileType.Flipping,
+                    'P' => TileType.Passive,
+                    'T' => TileType.Target,
+                    _ => TileType.Hole
                 };
             }
         }
@@ -315,5 +353,28 @@ public class GameScript : MonoBehaviour
         StartCoroutine(Highlight(_targetTiles));
         StartCoroutine(Highlight(_flippers));
         _gameState = GameState.Win;
+    }
+
+    private void CheckVictory()
+    {
+        if (_passives.Count > 0)
+            return;
+
+        foreach (var target in _targetTiles)
+        {
+            bool isHome = false;
+            foreach (var flipper in _flippers)
+            {
+                if (Vector3.Distance(flipper.transform.position, target.transform.position) < 0.9 * _tileSize)
+                {
+                    isHome = true;
+                    break;
+                }
+            }
+            if (!isHome)
+                return;
+        }
+
+        Win();
     }
 }
