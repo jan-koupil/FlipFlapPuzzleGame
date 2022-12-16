@@ -2,12 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using static UnityEngine.GraphicsBuffer;
 
-public class GameScript : MonoBehaviour
+public class GameController : MonoBehaviour
 {
     // Start is called before the first frame update
 
@@ -19,9 +20,14 @@ public class GameScript : MonoBehaviour
     public Material FloorMaterial;
     public Material TargetMaterial;
 
-    public float RollSpeed;
-    public float RiseSpeed;
-    public float RiseHeight;
+    public float RollSpeed = 3;
+    public float RiseSpeed = 0.005f;
+    public float RiseHeight = 0.15f;
+
+    public TMP_Text FlipCountDisplay;
+    public TMP_Text BestFlipCountDisplay;
+    public GameObject MessageBox;
+    private MessageBoxController _messageBoxController;
 
     private bool _isRolling;
     private GameState _gameState;
@@ -40,26 +46,32 @@ public class GameScript : MonoBehaviour
     private enum GameState : byte { Running, Win, Fail }
     private enum TileType : byte { Hole, Flipping, Passive, Floor, Target }
 
-    
+    private void Awake()
+    {
+        _messageBoxController = MessageBox.GetComponent<MessageBoxController>();
+        _gameData = GameObject.FindObjectOfType<GameData>();
+
+    }
+
     void Start()
     {
-        _gameData = GameObject.FindObjectOfType<GameData>();
         _gameState = GameState.Running;
 
-        string textMap =
-            "XXXXXXX\n" +
-            "XFXXXXX\n" +
-            "XXPXXXX\n" +
-            "XXX PXX\n" +
-            "XXTTXXX\n" +
-            "XXTXXXX\n" +
-            "XXXXXXX\n";
 
         //string textMap =
-        //    "XXXX\n" +
-        //    "XFXX\n" +
-        //    "XXTX\n" +
-        //    "XXXX\n";
+        //    "XXXXXXX\n" +
+        //    "XFXXXXX\n" +
+        //    "XXPXXXX\n" +
+        //    "XXX PXX\n" +
+        //    "XXTTXXX\n" +
+        //    "XXTXXXX\n" +
+        //    "XXXXXXX\n";
+
+        string textMap =
+            "XXXX\n" +
+            "XFXX\n" +
+            "XXTX\n" +
+            "XXXX\n";
 
         //string textMap =
         //    "XXXX\n" +
@@ -82,7 +94,6 @@ public class GameScript : MonoBehaviour
 
         if (Input.anyKey)
         {
-            Bounds bounds = GetFlipperBounds(_flippers);
 
             if (Input.GetKey(KeyCode.UpArrow))
                 StartFlipping(Vector3.forward);
@@ -93,18 +104,6 @@ public class GameScript : MonoBehaviour
             else if (Input.GetKey(KeyCode.RightArrow))
                 StartFlipping(Vector3.right);
 
-            void StartFlipping(Vector3 direction)
-            {
-                _gameData.CurrentSteps++;
-
-                var flipDirRay = new Ray(bounds.center, direction * -1);
-                bounds.IntersectRay(flipDirRay, out float distance);
-                
-                var anchor = flipDirRay.GetPoint(distance);
-                var axis = Vector3.Cross(Vector3.up, direction);
-                
-                StartCoroutine(Flip(_flippers, anchor, axis));
-            }
         }
 
     }
@@ -266,7 +265,15 @@ public class GameScript : MonoBehaviour
         currentRb.detectCollisions = true;
         _flippers.Remove(overlappingTile);
         _passives.Add(overlappingTile);
+
+        GameOver();
+    }
+
+    private void GameOver()
+    {
         _gameState = GameState.Fail;
+        _messageBoxController.SetModeGameOver();
+        _messageBoxController.Show();
     }
 
     private void BuildGame(TileType[,] map)
@@ -281,8 +288,10 @@ public class GameScript : MonoBehaviour
         _flippers = new();
         _passives = new();
 
+        _messageBoxController.Hide();
+
         _gameState = GameState.Running;
-        _gameData.CurrentSteps = 0;
+        _gameData.CurrentFlips = 0;
 
         int height = map.GetLength(0);
         int width = map.GetLength(1);
@@ -399,6 +408,9 @@ public class GameScript : MonoBehaviour
         StartCoroutine(Highlight(_targetTiles));
         StartCoroutine(Highlight(_flippers));
         _gameState = GameState.Win;
+
+        _messageBoxController.SetModeVictory();
+        _messageBoxController.Show();
     }
 
     private void CheckVictory()
@@ -422,5 +434,48 @@ public class GameScript : MonoBehaviour
         }
 
         Win();
+    }
+
+    private void RenderSteps()
+    {
+        BestFlipCountDisplay.text = _gameData.BestFlips.ToString();
+        FlipCountDisplay.text = _gameData.CurrentFlips.ToString();
+    }
+
+    private void StartFlipping(Vector3 direction)
+    {
+        if (_gameState != GameState.Running)
+            return;
+
+        Bounds bounds = GetFlipperBounds(_flippers);
+
+        _gameData.CurrentFlips++;
+        RenderSteps();
+
+        var flipDirRay = new Ray(bounds.center, direction * -1);
+        bounds.IntersectRay(flipDirRay, out float distance);
+
+        var anchor = flipDirRay.GetPoint(distance);
+        var axis = Vector3.Cross(Vector3.up, direction);
+
+        StartCoroutine(Flip(_flippers, anchor, axis));
+    }
+
+
+    public void FlipUp()
+    {
+        StartFlipping(Vector3.forward);
+    }
+    public void FlipDown()
+    {
+        StartFlipping(Vector3.back);
+    }
+    public void FlipLeft()
+    {
+        StartFlipping(Vector3.left);
+    }
+    public void FlipRight()
+    {
+        StartFlipping(Vector3.right);
     }
 }

@@ -1,13 +1,13 @@
-* zaokrouhlovat pozice po dopadu na int
+* ~~zaokrouhlovat pozice po dopadu na int~~
 
-* detekovat připlesknutí neaktivované dlaždice
-    * přidat rigidbody, rozlámat se jako u pádu
-    * provést gameover
+* ~~detekovat připlesknutí neaktivované dlaždice~~
+    * ~~přidat rigidbody, rozlámat se jako u pádu~~
+    * ~~provést gameover~~
 
-* počítat počet kroků
-    * zobrazovat na HUD
+* ~~počítat počet kroků~~
+    * ~~zobrazovat na HUD~~
     * ukládat ke každému levelu na konci kola jako HighScore
-    * zobrazovat highscore v HUD
+    * ~~zobrazovat highscore v HUD~~
 
 * vizualizace GameOver (zešednutí, overlay text?) a Win
 
@@ -17,8 +17,8 @@
 
 * přidat do HUD
     * běžná tlačítka (reset, menu)    
-    * ovládací tlačítka (kvůli tlf)
-    * mapování kláves na tlačítka místo na přímé pokyny
+    * ~~ovládací tlačítka (kvůli tlf)~~
+    * (Cancelled)~~mapování kláves na tlačítka místo na přímé pokyny~~
 
 
 * načítání levelu
