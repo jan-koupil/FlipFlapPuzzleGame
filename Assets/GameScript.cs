@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using static UnityEngine.GraphicsBuffer;
 
 public class GameScript : MonoBehaviour
@@ -26,6 +27,7 @@ public class GameScript : MonoBehaviour
     private GameState _gameState;
 
     private const int _tileSize = 1;
+    private const float _flipOverFlipperDist = 0.25f;
 
     private List<GameObject> _floor = null;
     private List<GameObject> _targetTiles = null;
@@ -33,12 +35,15 @@ public class GameScript : MonoBehaviour
     private List<GameObject> _passives = null;
 
     private TileType[,] _gameMap;
+    private GameData _gameData;
 
     private enum GameState : byte { Running, Win, Fail }
     private enum TileType : byte { Hole, Flipping, Passive, Floor, Target }
 
+    
     void Start()
     {
+        _gameData = GameObject.FindObjectOfType<GameData>();
         _gameState = GameState.Running;
 
         string textMap =
@@ -90,10 +95,14 @@ public class GameScript : MonoBehaviour
 
             void StartFlipping(Vector3 direction)
             {
+                _gameData.CurrentSteps++;
+
                 var flipDirRay = new Ray(bounds.center, direction * -1);
                 bounds.IntersectRay(flipDirRay, out float distance);
+                
                 var anchor = flipDirRay.GetPoint(distance);
                 var axis = Vector3.Cross(Vector3.up, direction);
+                
                 StartCoroutine(Flip(_flippers, anchor, axis));
             }
         }
@@ -140,17 +149,52 @@ public class GameScript : MonoBehaviour
             {
                 flipper.transform.RotateAround(anchor, axis, RollSpeed);
             }
+            CheckFlipOverFlipper();
             yield return null;
             //yield return new WaitForSeconds(0.01f);
         }
 
         _isRolling = false;
 
-        MergeAdjacentTiles();
+        if (_gameState == GameState.Running) //when flipped over flipper, this would be unnecessary
+        {
+            MergeAdjacentTiles();
+            RoundPositions();
+        }
+
         FindAndBreakOverlaps();
 
         if (_gameState == GameState.Running)
             CheckVictory();
+    }
+
+    /// <summary>
+    /// Checks if any of the flipping tiles is above a passive flipping tile - that is a gameover
+    /// </summary>
+    private void CheckFlipOverFlipper()
+    {
+        foreach (GameObject flipper in _flippers.ToArray())
+        {
+            foreach (GameObject passive in _passives.ToArray())
+            {
+                float distance = Vector3.Distance(flipper.transform.position, passive.transform.position);
+                if (distance < _flipOverFlipperDist * _tileSize)
+                {
+                    BreakOverlap(flipper);
+                }
+            }
+        }
+    }
+
+        private void RoundPositions()
+    {
+        foreach (var flipper in _flippers)
+        {
+            Vector3 coercedPos = flipper.transform.position;
+            coercedPos.x = Mathf.Round(coercedPos.x);
+            coercedPos.z = Mathf.Round(coercedPos.z);
+            flipper.transform.position = coercedPos;
+        }
     }
 
     IEnumerator Highlight(List<GameObject> endObjects)
@@ -217,10 +261,11 @@ public class GameScript : MonoBehaviour
 
     private void BreakOverlap(GameObject overlappingTile)
     {
-        overlappingTile.transform.localScale *= 0.95f;
+        overlappingTile.transform.localScale *= 0.98f;
         Rigidbody currentRb = overlappingTile.AddComponent<Rigidbody>();
         currentRb.detectCollisions = true;
         _flippers.Remove(overlappingTile);
+        _passives.Add(overlappingTile);
         _gameState = GameState.Fail;
     }
 
@@ -237,6 +282,7 @@ public class GameScript : MonoBehaviour
         _passives = new();
 
         _gameState = GameState.Running;
+        _gameData.CurrentSteps = 0;
 
         int height = map.GetLength(0);
         int width = map.GetLength(1);
