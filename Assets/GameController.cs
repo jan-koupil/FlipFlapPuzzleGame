@@ -27,8 +27,11 @@ public class GameController : MonoBehaviour
 
     public TMP_Text FlipCountDisplay;
     public TMP_Text BestFlipCountDisplay;
-    public GameObject MessageBox;
-    private FinalDialogBoxController _messageBoxController;
+    public GameObject FinalDialogBox;
+    public GameObject StartMessageBox;
+    private StartMessageBoxController _startMessageBoxController;
+    private FinalDialogBoxController _finalDialogBoxController;
+    private Level _level;
 
     private bool _isRolling;
     private GameState _gameState;
@@ -44,52 +47,40 @@ public class GameController : MonoBehaviour
     private TileType[,] _gameMap;
     private GameData _gameData;
 
-    private enum GameState : byte { Running, Win, Fail }
+    private enum GameState : byte { Init, Running, Win, Fail }
     private enum TileType : byte { Hole, Flipping, Passive, Floor, Target }
 
     private void Awake()
     {
-        _messageBoxController = MessageBox.GetComponent<FinalDialogBoxController>();
+        _startMessageBoxController = StartMessageBox.GetComponent<StartMessageBoxController>();
+        _finalDialogBoxController = FinalDialogBox.GetComponent<FinalDialogBoxController>();
         _gameData = GameObject.FindObjectOfType<GameData>();
 
     }
 
     void Start()
     {
-        _gameState = GameState.Running;
+        _gameState = GameState.Init;
 
+        _level = Level.GetLevel(_gameData.Level);        
+        _gameMap = ParseTextMap(_level.TextMap);
 
-        ////string textMap =
-        ////    "XXXXXXX\n" +
-        ////    "XFXXXXX\n" +
-        ////    "XXPXXXX\n" +
-        ////    "XXX PXX\n" +
-        ////    "XXTTXXX\n" +
-        ////    "XXTXXXX\n" +
-        ////    "XXXXXXX\n";
-
-        //string textMap =
-        //    "XXXX\n" +
-        //    "XFXX\n" +
-        //    "XXTX\n" +
-        //    "XXXX\n";
-
-        ////string textMap =
-        ////    "XXXX\n" +
-        ////    "XFXX\n" +
-        ////    "TXPX\n" +
-        ////    "TXXX\n";
-
-        string textMap = Level.GetLevel(_gameData.Level).TextMap;
-        _gameMap = ParseTextMap(textMap);
         BuildGame(_gameMap);
+        _startMessageBoxController.Show(_gameData.Level, _level.Code);
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Backspace) && _gameState != GameState.Win)
+        if (
+            Input.GetKeyDown(KeyCode.Backspace) && 
+            _gameState != GameState.Win && 
+            !_startMessageBoxController.IsVisible
+        )
+        { 
             BuildGame(_gameMap);
+            StartGame();
+        }
 
         if (_isRolling || _gameState != GameState.Running) 
             return;
@@ -274,8 +265,8 @@ public class GameController : MonoBehaviour
     private void GameOver()
     {
         _gameState = GameState.Fail;
-        _messageBoxController.SetModeGameOver();
-        _messageBoxController.Show();
+        _finalDialogBoxController.SetModeGameOver();
+        _finalDialogBoxController.Show();
     }
 
     private void BuildGame(TileType[,] map)
@@ -290,9 +281,9 @@ public class GameController : MonoBehaviour
         _flippers = new();
         _passives = new();
 
-        _messageBoxController.Hide();
+        _finalDialogBoxController.Hide();
 
-        _gameState = GameState.Running;
+        _gameState = GameState.Init;
         _gameData.CurrentFlips = 0;
 
         int height = map.GetLength(0);
@@ -330,6 +321,12 @@ public class GameController : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void StartGame()
+    {
+        _startMessageBoxController.Hide();
+        _gameState = GameState.Running;
     }
 
     private void DestroyAll(List<GameObject> objects)
@@ -411,8 +408,8 @@ public class GameController : MonoBehaviour
         StartCoroutine(Highlight(_flippers));
         _gameState = GameState.Win;
 
-        _messageBoxController.SetModeVictory();
-        _messageBoxController.Show();
+        _finalDialogBoxController.SetModeVictory();
+        _finalDialogBoxController.Show();
     }
 
     private void CheckVictory()
@@ -462,7 +459,6 @@ public class GameController : MonoBehaviour
 
         StartCoroutine(Flip(_flippers, anchor, axis));
     }
-
 
     public void FlipUp()
     {
