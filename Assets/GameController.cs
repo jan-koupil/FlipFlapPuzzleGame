@@ -28,7 +28,7 @@ public class GameController : MonoBehaviour
     public TMP_Text FlipCountDisplay;
     public TMP_Text BestFlipCountDisplay;
     public GameObject MessageBox;
-    private MessageBoxController _messageBoxController;
+    private FinalDialogBoxController _messageBoxController;
 
     private bool _isRolling;
     private GameState _gameState;
@@ -49,7 +49,7 @@ public class GameController : MonoBehaviour
 
     private void Awake()
     {
-        _messageBoxController = MessageBox.GetComponent<MessageBoxController>();
+        _messageBoxController = MessageBox.GetComponent<FinalDialogBoxController>();
         _gameData = GameObject.FindObjectOfType<GameData>();
 
     }
