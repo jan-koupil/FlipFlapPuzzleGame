@@ -45,7 +45,8 @@ public class MainMenuController : MonoBehaviour
             if (UIIndex > -1)
             {
                 UIIndex--;
-                UIIndex %= _UISelectables.Count;
+                if (UIIndex < 0)
+                    UIIndex += _UISelectables.Count;
                 EventSystem.current.SetSelectedGameObject(_UISelectables[UIIndex]);
             }
         }
@@ -59,6 +60,7 @@ public class MainMenuController : MonoBehaviour
                 EventSystem.current.SetSelectedGameObject(_UISelectables[UIIndex]);
             }
         }
+
     }
 
     public void StartGame()

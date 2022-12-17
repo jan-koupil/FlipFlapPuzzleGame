@@ -1,28 +1,62 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEditor.VersionControl;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class FinalDialogBoxController : MonoBehaviour
 {  
-    public TMP_Text Message;
-    public Button BackBtn;
-    public Button ContinueBtn;
-    public TMP_Text ContinueText;
-    //public TMP_Text BackText;    
+    private TMP_Text _message;
+    private TMP_Text _continueText;
+    
+    private List<GameObject> _UISelectables = new List<GameObject>();
+
+
+    private void Awake()
+    {
+        _message = transform.Find("MessageText").gameObject.GetComponent<TMP_Text>();
+        _continueText = transform.Find("ContinueBtn/ContinueText").gameObject.GetComponent<TMP_Text>();
+
+        _UISelectables.Add(transform.Find("ContinueBtn").gameObject);
+        _UISelectables.Add(transform.Find("BackToMenuBtn").gameObject);
+    }
 
     // Start is called before the first frame update
     void Start()
     {
         this.Hide();       
     }
-
-    // Update is called once per frame
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Tab) && Input.GetKey(KeyCode.LeftShift))
+        {
+            int UIIndex = FindSelectedIndex();
+            if (UIIndex > -1)
+            {
+                UIIndex--;
+                if (UIIndex < 0) 
+                    UIIndex += _UISelectables.Count;
+                EventSystem.current.SetSelectedGameObject(_UISelectables[UIIndex]);
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            int UIIndex = FindSelectedIndex();
+            if (UIIndex > -1)
+            {
+                UIIndex++;
+                UIIndex %= _UISelectables.Count;
+                EventSystem.current.SetSelectedGameObject(_UISelectables[UIIndex]);
+            }
+        }
+    }
     public void Show()
     {
         gameObject.SetActive(true);
+        EventSystem.current.SetSelectedGameObject(_UISelectables[0]);
     }
     public void Hide()
     {
@@ -30,15 +64,13 @@ public class FinalDialogBoxController : MonoBehaviour
     }
     public void SetModeGameOver()
     {
-        Message.text = "Game Over";
-        //BackText.text = "Back to menu";
-        ContinueText.text = "Try again";
+        _message.text = "Game Over";
+        _continueText.text = "Try again";
     }
     public void SetModeVictory()
     {
-        Message.text = "Good job!";
-        //BackText.text = "Back to menu";
-        ContinueText.text = "Next level";
+        _message.text = "Good job!";
+        _continueText.text = "Next level";
     }
 
     public void PlayLevel()
@@ -49,5 +81,9 @@ public class FinalDialogBoxController : MonoBehaviour
     {
         SceneManager.LoadScene("MainMenu");
     }
-
+    private int FindSelectedIndex()
+    {
+        var selected = EventSystem.current.currentSelectedGameObject;
+        return _UISelectables.IndexOf(selected);
+    }
 }

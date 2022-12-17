@@ -642,7 +642,7 @@ RectTransform:
   - {fileID: 1136873734}
   - {fileID: 119492011}
   m_Father: {fileID: 524088946}
-  m_RootOrder: 6
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1148,9 +1148,9 @@ RectTransform:
   - {fileID: 873949212}
   - {fileID: 961855440}
   - {fileID: 379962243}
+  - {fileID: 220360183}
   - {fileID: 666389560}
   - {fileID: 1073993273}
-  - {fileID: 220360183}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1194,7 +1194,7 @@ RectTransform:
   - {fileID: 1384657068}
   - {fileID: 53670240}
   m_Father: {fileID: 524088946}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1251,10 +1251,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fad5f4e05a857654a937e8dc9e698fda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Message: {fileID: 857008901}
-  BackBtn: {fileID: 53670241}
-  ContinueBtn: {fileID: 1384657069}
-  ContinueText: {fileID: 810433917}
 --- !u!1 &810433915
 GameObject:
   m_ObjectHideFlags: 0
@@ -1267,7 +1263,7 @@ GameObject:
   - component: {fileID: 810433918}
   - component: {fileID: 810433917}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: ContinueText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1877,7 +1873,7 @@ GameObject:
   - component: {fileID: 962270408}
   - component: {fileID: 962270407}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: BacBtnText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2168,7 +2164,7 @@ RectTransform:
   - {fileID: 1331362407}
   - {fileID: 1437601238}
   m_Father: {fileID: 524088946}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 30}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
