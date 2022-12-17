@@ -410,6 +410,8 @@ public class GameController : MonoBehaviour
 
         _finalDialogBoxController.SetModeVictory();
         _finalDialogBoxController.Show();
+
+        _gameData.Level++;
     }
 
     private void CheckVictory()

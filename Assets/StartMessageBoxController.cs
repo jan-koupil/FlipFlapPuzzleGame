@@ -21,7 +21,7 @@ public class StartMessageBoxController : MonoBehaviour
     // Update is called once per frame
     public void Show(int levelNo, string code)
     {
-        Message.text = $"Level {levelNo}: CODE \"{code}\"";
+        Message.text = $"Level: {levelNo}\nCode: {code}";
         gameObject.SetActive(true);
         IsVisible = true;
     }
