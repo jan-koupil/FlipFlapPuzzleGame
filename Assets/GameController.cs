@@ -13,26 +13,30 @@ public class GameController : MonoBehaviour
 {
     // Start is called before the first frame update
 
-    public GameObject FloorTile;
-    public GameObject FlipTile;
+    [SerializeField] GameObject FloorTile;
+    [SerializeField] GameObject FlipTile;
 
-    public Material FlippingMaterial;
-    public Material PassiveMaterial;
-    public Material FloorMaterial;
-    public Material TargetMaterial;
+    [SerializeField] Material FlippingMaterial;
+    [SerializeField] Material PassiveMaterial;
+    [SerializeField] Material FloorMaterial;
+    [SerializeField] Material TargetMaterial;
 
-    public float RollSpeed = 3;
-    public float RiseSpeed = 0.005f;
-    public float RiseHeight = 0.15f;
+    [SerializeField] float RollSpeed = 3;
+    [SerializeField] float RiseSpeed = 0.005f;
+    [SerializeField] float RiseHeight = 0.15f;
 
-    public TMP_Text FlipCountDisplay;
-    public TMP_Text BestFlipCountDisplay;
-    public GameObject FinalDialogBox;
-    public GameObject StartMessageBox;
+    [SerializeField] TMP_Text FlipCountDisplay;
+    [SerializeField] TMP_Text BestFlipCountDisplay;
+    [SerializeField] GameObject FinalDialogBox;
+    [SerializeField] GameObject StartMessageBox;
+
     private StartMessageBoxController _startMessageBoxController;
     private FinalDialogBoxController _finalDialogBoxController;
     private Level _level;
 
+    /// <summary>
+    /// Shows wheter Flippy is in motion or can be controlled
+    /// </summary>
     private bool _isRolling;
     private GameState _gameState;
 
