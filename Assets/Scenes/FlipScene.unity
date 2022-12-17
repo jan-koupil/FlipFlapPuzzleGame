@@ -192,8 +192,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -111, y: -22}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: -100, y: -26}
+  m_SizeDelta: {x: 180, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &53670241
 MonoBehaviour:
@@ -960,8 +960,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 401}
-  m_SizeDelta: {x: 500, y: 200}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 500, y: 160}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &666389561
 MonoBehaviour:
@@ -1013,11 +1013,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fad5f4e05a857654a937e8dc9e698fda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Message: {fileID: 0}
-  Btn1: {fileID: 0}
-  Btn2: {fileID: 0}
-  Btn1Text: {fileID: 0}
-  Btn2Text: {fileID: 0}
+  Message: {fileID: 857008901}
+  BackBtn: {fileID: 53670241}
+  ContinueBtn: {fileID: 1384657069}
+  ContinueText: {fileID: 810433917}
 --- !u!1 &810433915
 GameObject:
   m_ObjectHideFlags: 0
@@ -1188,7 +1187,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 39}
+  m_AnchoredPosition: {x: 0, y: 35}
   m_SizeDelta: {x: 381.76, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &857008901
@@ -1686,7 +1685,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: Back to menu
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2155,8 +2154,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 109, y: -22}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: 100, y: -26}
+  m_SizeDelta: {x: 180, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1384657069
 MonoBehaviour:
@@ -2877,6 +2876,7 @@ MonoBehaviour:
   RiseHeight: 0.15
   FlipCountDisplay: {fileID: 961855441}
   BestFlipCountDisplay: {fileID: 379962244}
+  MessageBox: {fileID: 666389559}
 --- !u!1 &2133983356
 GameObject:
   m_ObjectHideFlags: 0

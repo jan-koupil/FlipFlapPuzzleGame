@@ -10,12 +10,12 @@ public class MessageBoxController : MonoBehaviour
     public Button BackBtn;
     public Button ContinueBtn;
     public TMP_Text ContinueText;
-    public TMP_Text BackText;    
+    //public TMP_Text BackText;    
 
     // Start is called before the first frame update
     void Start()
     {
-        gameObject.SetActive(false);       
+        this.Hide();       
     }
 
     // Update is called once per frame
@@ -30,13 +30,13 @@ public class MessageBoxController : MonoBehaviour
     public void SetModeGameOver()
     {
         Message.text = "Game Over";
-        BackText.text = "Back to menu";
+        //BackText.text = "Back to menu";
         ContinueText.text = "Try again";
     }
     public void SetModeVictory()
     {
         Message.text = "Good job!";
-        BackText.text = "Back to menu";
+        //BackText.text = "Back to menu";
         ContinueText.text = "Next level";
     }
 
@@ -44,7 +44,7 @@ public class MessageBoxController : MonoBehaviour
     {
 
     }
-    private void BackToMenu()
+    public void BackToMenu()
     {
 
     }
