@@ -9,6 +9,7 @@ public class GameData : MonoBehaviour
         DontDestroyOnLoad(this);
     }
 
-    public int CurrentFlips = 0;
-    public int BestFlips = 0;
+    public int Level { get; set; } = 3;
+    public int CurrentFlips { get; set; } = 0;
+    public int BestFlips { get; set; } = 0;
 }

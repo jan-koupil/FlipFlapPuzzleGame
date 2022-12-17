@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -58,27 +59,28 @@ public class GameController : MonoBehaviour
         _gameState = GameState.Running;
 
 
-        //string textMap =
-        //    "XXXXXXX\n" +
-        //    "XFXXXXX\n" +
-        //    "XXPXXXX\n" +
-        //    "XXX PXX\n" +
-        //    "XXTTXXX\n" +
-        //    "XXTXXXX\n" +
-        //    "XXXXXXX\n";
-
-        string textMap =
-            "XXXX\n" +
-            "XFXX\n" +
-            "XXTX\n" +
-            "XXXX\n";
+        ////string textMap =
+        ////    "XXXXXXX\n" +
+        ////    "XFXXXXX\n" +
+        ////    "XXPXXXX\n" +
+        ////    "XXX PXX\n" +
+        ////    "XXTTXXX\n" +
+        ////    "XXTXXXX\n" +
+        ////    "XXXXXXX\n";
 
         //string textMap =
         //    "XXXX\n" +
         //    "XFXX\n" +
-        //    "TXPX\n" +
-        //    "TXXX\n";
+        //    "XXTX\n" +
+        //    "XXXX\n";
 
+        ////string textMap =
+        ////    "XXXX\n" +
+        ////    "XFXX\n" +
+        ////    "TXPX\n" +
+        ////    "TXXX\n";
+
+        string textMap = Level.GetLevel(_gameData.Level).TextMap;
         _gameMap = ParseTextMap(textMap);
         BuildGame(_gameMap);
     }
@@ -479,3 +481,70 @@ public class GameController : MonoBehaviour
         StartFlipping(Vector3.right);
     }
 }
+
+class Level
+{
+    private static List<Level> _levelList = new();
+    public string TextMap { get; private set; }
+    public string Code { get; private set; }
+
+    static Level()
+    {
+        InitLevels();
+    }
+
+    public static Level GetLevel(int levelNo)
+    {
+        Debug.Log(levelNo.ToString());
+        int index = levelNo - 1;
+        return _levelList[index];
+    }
+
+    /// <summary>
+    /// Finds level no. by level code
+    /// </summary>
+    /// <param name="code">Text code given by player</param>
+    /// <returns>index of level, otherwise 0</returns>
+    public static int FindLevel(string code)
+    {
+        return _levelList.FindIndex(l => l.Code == code) + 1;                     
+    }
+
+    public Level(string textMap, string code)
+    {
+        TextMap = textMap;
+        Code = code;
+    }
+
+    private static void InitLevels()
+    {
+        _levelList.Add(new Level(
+            "XXXX\n" +
+            "XFXX\n" +
+            "XXTX\n" +
+            "XXXX\n",
+            "SQUARE"
+        ));
+
+        _levelList.Add(new Level(        
+            "XXXX\n" +
+            "XFXX\n" +
+            "TXPX\n" +
+            "TXXX\n",
+            "PAIR"
+        ));
+
+        _levelList.Add(new Level(
+            "XXXXXXX\n" +
+            "XFXXXXX\n" +
+            "XXPXXXX\n" +
+            "XXX PXX\n" +
+            "XXTTXXX\n" +
+            "XXTXXXX\n" +
+            "XXXXXXX\n",
+            "DOUGHNUT"
+        ));
+
+    }
+}
+
