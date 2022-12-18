@@ -79,13 +79,13 @@ public class GameScript : MonoBehaviour
         {
             Bounds bounds = GetFlipperBounds(_flippers);
 
-            if (Input.GetKey(KeyCode.UpArrow))
+            if (Input.GetKey(KeyCode.A))
                 StartFlipping(Vector3.forward);
-            else if (Input.GetKey(KeyCode.DownArrow))
+            else if (Input.GetKey(KeyCode.Z))
                 StartFlipping(Vector3.back);
-            else if (Input.GetKey(KeyCode.LeftArrow))
+            else if (Input.GetKey(KeyCode.N))
                 StartFlipping(Vector3.left);
-            else if (Input.GetKey(KeyCode.RightArrow))
+            else if (Input.GetKey(KeyCode.M))
                 StartFlipping(Vector3.right);
 
             void StartFlipping(Vector3 direction)
