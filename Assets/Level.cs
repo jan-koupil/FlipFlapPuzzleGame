@@ -17,7 +17,9 @@ public class Level
     {
         //Debug.Log(levelNo.ToString());
         int index = levelNo - 1;
-        return _levelList[index];
+        if (index < _levelList.Count)
+            return _levelList[index];
+        else return null;
     }
 
     /// <summary>

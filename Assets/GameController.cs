@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
 using static UnityEngine.GraphicsBuffer;
 
@@ -24,6 +25,7 @@ public class GameController : MonoBehaviour
     [SerializeField] float RollSpeed = 3;
     [SerializeField] float RiseSpeed = 0.005f;
     [SerializeField] float RiseHeight = 0.15f;
+    [SerializeField] float FinalMenuDelay = 1.5f;
 
     [SerializeField] TMP_Text FlipCountDisplay;
     [SerializeField] TMP_Text BestFlipCountDisplay;
@@ -67,6 +69,12 @@ public class GameController : MonoBehaviour
         _gameState = GameState.Init;
 
         _level = Level.GetLevel(_gameData.Level);        
+        if (_level == null) //end game
+        {
+            _gameData.Level--;
+            SceneManager.LoadScene("WinGameScene");
+            return;
+        }
         _gameMap = ParseTextMap(_level.TextMap);
 
         BuildGame(_gameMap);
@@ -270,8 +278,17 @@ public class GameController : MonoBehaviour
     {
         _gameState = GameState.Fail;
         _finalDialogBoxController.SetModeGameOver();
+        StartCoroutine(DelayMenuShow(FinalMenuDelay));
+    }
+
+
+    IEnumerator DelayMenuShow(float delayTime)
+    {
+        yield return new WaitForSeconds(delayTime);
+
         _finalDialogBoxController.Show();
     }
+
 
     private void BuildGame(TileType[,] map)
     {
@@ -413,7 +430,7 @@ public class GameController : MonoBehaviour
         _gameState = GameState.Win;
 
         _finalDialogBoxController.SetModeVictory();
-        _finalDialogBoxController.Show();
+        StartCoroutine(DelayMenuShow(FinalMenuDelay));
 
         _gameData.Level++;
     }
@@ -441,7 +458,7 @@ public class GameController : MonoBehaviour
         Win();
     }
 
-    private void RenderSteps()
+    private void RenderFlipCount()
     {
         BestFlipCountDisplay.text = _gameData.BestFlips.ToString();
         FlipCountDisplay.text = _gameData.CurrentFlips.ToString();
@@ -449,13 +466,13 @@ public class GameController : MonoBehaviour
 
     private void StartFlipping(Vector3 direction)
     {
-        if (_gameState != GameState.Running)
+        if (_isRolling || _gameState != GameState.Running)
             return;
 
         Bounds bounds = GetFlipperBounds(_flippers);
 
         _gameData.CurrentFlips++;
-        RenderSteps();
+        RenderFlipCount();
 
         var flipDirRay = new Ray(bounds.center, direction * -1);
         bounds.IntersectRay(flipDirRay, out float distance);
