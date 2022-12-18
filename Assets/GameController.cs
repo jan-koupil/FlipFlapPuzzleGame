@@ -2,30 +2,48 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Playables;
+using UnityEngine.SceneManagement;
 using static UnityEngine.GraphicsBuffer;
 
-public class GameScript : MonoBehaviour
+public class GameController : MonoBehaviour
 {
     // Start is called before the first frame update
 
-    public GameObject FloorTile;
-    public GameObject FlipTile;
+    [SerializeField] GameObject FloorTile;
+    [SerializeField] GameObject FlipTile;
 
-    public Material FlippingMaterial;
-    public Material PassiveMaterial;
-    public Material FloorMaterial;
-    public Material TargetMaterial;
+    [SerializeField] Material FlippingMaterial;
+    [SerializeField] Material PassiveMaterial;
+    [SerializeField] Material FloorMaterial;
+    [SerializeField] Material TargetMaterial;
 
-    public float RollSpeed;
-    public float RiseSpeed;
-    public float RiseHeight;
+    [SerializeField] float RollSpeed = 3;
+    [SerializeField] float RiseSpeed = 0.005f;
+    [SerializeField] float RiseHeight = 0.15f;
+    [SerializeField] float FinalMenuDelay = 1.5f;
 
+    [SerializeField] TMP_Text FlipCountDisplay;
+    [SerializeField] TMP_Text BestFlipCountDisplay;
+    [SerializeField] GameObject FinalDialogBox;
+    [SerializeField] GameObject StartMessageBox;
+
+    private StartMessageBoxController _startMessageBoxController;
+    private FinalDialogBoxController _finalDialogBoxController;
+    private Level _level;
+
+    /// <summary>
+    /// Shows wheter Flippy is in motion or can be controlled
+    /// </summary>
     private bool _isRolling;
     private GameState _gameState;
 
     private const int _tileSize = 1;
+    private const float _flipOverFlipperDist = 0.25f;
 
     private List<GameObject> _floor = null;
     private List<GameObject> _targetTiles = null;
@@ -33,51 +51,54 @@ public class GameScript : MonoBehaviour
     private List<GameObject> _passives = null;
 
     private TileType[,] _gameMap;
+    private GameData _gameData;
 
-    private enum GameState : byte { Running, Win, Fail }
+    private enum GameState : byte { Init, Running, Win, Fail }
     private enum TileType : byte { Hole, Flipping, Passive, Floor, Target }
+
+    private void Awake()
+    {
+        _startMessageBoxController = StartMessageBox.GetComponent<StartMessageBoxController>();
+        _finalDialogBoxController = FinalDialogBox.GetComponent<FinalDialogBoxController>();
+        _gameData = GameObject.FindObjectOfType<GameData>();
+
+    }
 
     void Start()
     {
-        _gameState = GameState.Running;
+        _gameState = GameState.Init;
 
-        string textMap =
-            "XXXXXXX\n" +
-            "XFXXXXX\n" +
-            "XXPXXXX\n" +
-            "XXX PXX\n" +
-            "XXTTXXX\n" +
-            "XXTXXXX\n" +
-            "XXXXXXX\n";
+        _level = Level.GetLevel(_gameData.Level);        
+        if (_level == null) //end game
+        {
+            _gameData.Level--;
+            SceneManager.LoadScene("WinGameScene");
+            return;
+        }
+        _gameMap = ParseTextMap(_level.TextMap);
 
-        //string textMap =
-        //    "XXXX\n" +
-        //    "XFXX\n" +
-        //    "XXTX\n" +
-        //    "XXXX\n";
-
-        //string textMap =
-        //    "XXXX\n" +
-        //    "XFXX\n" +
-        //    "TXPX\n" +
-        //    "TXXX\n";
-
-        _gameMap = ParseTextMap(textMap);
-        BuildGame(_gameMap);
+        SetUpGame(_gameMap);
+        _startMessageBoxController.Show(_gameData.Level, _level.Code);
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Backspace) && _gameState != GameState.Win)
-            BuildGame(_gameMap);
+        if (
+            Input.GetKeyDown(KeyCode.Backspace) && 
+            _gameState != GameState.Win && 
+            !_startMessageBoxController.IsVisible
+        )
+        { 
+            SetUpGame(_gameMap);
+            StartGame();
+        }
 
         if (_isRolling || _gameState != GameState.Running) 
             return;
 
         if (Input.anyKey)
         {
-            Bounds bounds = GetFlipperBounds(_flippers);
 
             if (Input.GetKey(KeyCode.A))
                 StartFlipping(Vector3.forward);
@@ -88,14 +109,6 @@ public class GameScript : MonoBehaviour
             else if (Input.GetKey(KeyCode.M))
                 StartFlipping(Vector3.right);
 
-            void StartFlipping(Vector3 direction)
-            {
-                var flipDirRay = new Ray(bounds.center, direction * -1);
-                bounds.IntersectRay(flipDirRay, out float distance);
-                var anchor = flipDirRay.GetPoint(distance);
-                var axis = Vector3.Cross(Vector3.up, direction);
-                StartCoroutine(Flip(_flippers, anchor, axis));
-            }
         }
 
     }
@@ -140,17 +153,52 @@ public class GameScript : MonoBehaviour
             {
                 flipper.transform.RotateAround(anchor, axis, RollSpeed);
             }
+            CheckFlipOverFlipper();
             yield return null;
             //yield return new WaitForSeconds(0.01f);
         }
 
         _isRolling = false;
 
-        MergeAdjacentTiles();
+        if (_gameState == GameState.Running) //when flipped over flipper, this would be unnecessary
+        {
+            MergeAdjacentTiles();
+            RoundPositions();
+        }
+
         FindAndBreakOverlaps();
 
         if (_gameState == GameState.Running)
             CheckVictory();
+    }
+
+    /// <summary>
+    /// Checks if any of the flipping tiles is above a passive flipping tile - that is a gameover
+    /// </summary>
+    private void CheckFlipOverFlipper()
+    {
+        foreach (GameObject flipper in _flippers.ToArray())
+        {
+            foreach (GameObject passive in _passives.ToArray())
+            {
+                float distance = Vector3.Distance(flipper.transform.position, passive.transform.position);
+                if (distance < _flipOverFlipperDist * _tileSize)
+                {
+                    BreakOverlap(flipper);
+                }
+            }
+        }
+    }
+
+        private void RoundPositions()
+    {
+        foreach (var flipper in _flippers)
+        {
+            Vector3 coercedPos = flipper.transform.position;
+            coercedPos.x = Mathf.Round(coercedPos.x);
+            coercedPos.z = Mathf.Round(coercedPos.z);
+            flipper.transform.position = coercedPos;
+        }
     }
 
     IEnumerator Highlight(List<GameObject> endObjects)
@@ -217,14 +265,32 @@ public class GameScript : MonoBehaviour
 
     private void BreakOverlap(GameObject overlappingTile)
     {
-        overlappingTile.transform.localScale *= 0.95f;
+        overlappingTile.transform.localScale *= 0.98f;
         Rigidbody currentRb = overlappingTile.AddComponent<Rigidbody>();
         currentRb.detectCollisions = true;
         _flippers.Remove(overlappingTile);
-        _gameState = GameState.Fail;
+        _passives.Add(overlappingTile);
+
+        GameOver();
     }
 
-    private void BuildGame(TileType[,] map)
+    private void GameOver()
+    {
+        _gameState = GameState.Fail;
+        _finalDialogBoxController.SetModeGameOver();
+        StartCoroutine(DelayMenuShow(FinalMenuDelay));
+    }
+
+
+    IEnumerator DelayMenuShow(float delayTime)
+    {
+        yield return new WaitForSeconds(delayTime);
+
+        _finalDialogBoxController.Show();
+    }
+
+
+    private void SetUpGame(TileType[,] map)
     {
         DestroyAll(_floor);
         DestroyAll(_targetTiles);
@@ -236,7 +302,11 @@ public class GameScript : MonoBehaviour
         _flippers = new();
         _passives = new();
 
-        _gameState = GameState.Running;
+        _finalDialogBoxController.Hide();
+
+        _gameState = GameState.Init;
+        _gameData.CurrentFlips = 0;
+        RenderFlipCount();
 
         int height = map.GetLength(0);
         int width = map.GetLength(1);
@@ -273,6 +343,12 @@ public class GameScript : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void StartGame()
+    {
+        _startMessageBoxController.Hide();
+        _gameState = GameState.Running;
     }
 
     private void DestroyAll(List<GameObject> objects)
@@ -353,6 +429,12 @@ public class GameScript : MonoBehaviour
         StartCoroutine(Highlight(_targetTiles));
         StartCoroutine(Highlight(_flippers));
         _gameState = GameState.Win;
+        _gameData.BestFlips = _gameData.CurrentFlips;
+
+        _finalDialogBoxController.SetModeVictory();
+        StartCoroutine(DelayMenuShow(FinalMenuDelay));
+
+        _gameData.Level++;
     }
 
     private void CheckVictory()
@@ -377,4 +459,50 @@ public class GameScript : MonoBehaviour
 
         Win();
     }
+
+    private void RenderFlipCount()
+    {
+        int best = _gameData.BestFlips;
+        BestFlipCountDisplay.text = best != 0 ? _gameData.BestFlips.ToString() : "-";
+        FlipCountDisplay.text = _gameData.CurrentFlips.ToString();
+    }
+
+    private void StartFlipping(Vector3 direction)
+    {
+        if (_isRolling || _gameState != GameState.Running)
+            return;
+
+        Bounds bounds = GetFlipperBounds(_flippers);
+
+        _gameData.CurrentFlips++;
+        RenderFlipCount();
+
+        var flipDirRay = new Ray(bounds.center, direction * -1);
+        bounds.IntersectRay(flipDirRay, out float distance);
+
+        var anchor = flipDirRay.GetPoint(distance);
+        var axis = Vector3.Cross(Vector3.up, direction);
+
+        StartCoroutine(Flip(_flippers, anchor, axis));
+    }
+
+    public void FlipUp()
+    {
+        StartFlipping(Vector3.forward);
+    }
+    public void FlipDown()
+    {
+        StartFlipping(Vector3.back);
+    }
+    public void FlipLeft()
+    {
+        StartFlipping(Vector3.left);
+    }
+    public void FlipRight()
+    {
+        StartFlipping(Vector3.right);
+    }
 }
+
+
+
