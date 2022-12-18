@@ -26,7 +26,7 @@ public class Level
     /// Finds level no. by level code
     /// </summary>
     /// <param name="code">Text code given by player</param>
-    /// <returns>index of level, otherwise 0</returns>
+    /// <returns>Number of level, otherwise 0</returns>
     public static int FindLevel(string code)
     {
         return _levelList.FindIndex(l => l.Code == code) + 1;
@@ -49,6 +49,14 @@ public class Level
         ));
 
         _levelList.Add(new Level(
+            "FX     \n" +
+            " XX    \n" +
+            "  XX   \n" +
+            "   XT  \n",
+            "PATH"
+        ));
+        
+        _levelList.Add(new Level(
             "XXXX\n" +
             "XFXX\n" +
             "TXPX\n" +
@@ -66,6 +74,7 @@ public class Level
             "XXXXXXX\n",
             "DOUGHNUT"
         ));
+
 
     }
 }

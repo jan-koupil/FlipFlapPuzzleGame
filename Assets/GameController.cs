@@ -77,7 +77,7 @@ public class GameController : MonoBehaviour
         }
         _gameMap = ParseTextMap(_level.TextMap);
 
-        BuildGame(_gameMap);
+        SetUpGame(_gameMap);
         _startMessageBoxController.Show(_gameData.Level, _level.Code);
     }
 
@@ -90,7 +90,7 @@ public class GameController : MonoBehaviour
             !_startMessageBoxController.IsVisible
         )
         { 
-            BuildGame(_gameMap);
+            SetUpGame(_gameMap);
             StartGame();
         }
 
@@ -290,7 +290,7 @@ public class GameController : MonoBehaviour
     }
 
 
-    private void BuildGame(TileType[,] map)
+    private void SetUpGame(TileType[,] map)
     {
         DestroyAll(_floor);
         DestroyAll(_targetTiles);
@@ -306,6 +306,7 @@ public class GameController : MonoBehaviour
 
         _gameState = GameState.Init;
         _gameData.CurrentFlips = 0;
+        RenderFlipCount();
 
         int height = map.GetLength(0);
         int width = map.GetLength(1);
@@ -428,6 +429,7 @@ public class GameController : MonoBehaviour
         StartCoroutine(Highlight(_targetTiles));
         StartCoroutine(Highlight(_flippers));
         _gameState = GameState.Win;
+        _gameData.BestFlips = _gameData.CurrentFlips;
 
         _finalDialogBoxController.SetModeVictory();
         StartCoroutine(DelayMenuShow(FinalMenuDelay));
@@ -460,7 +462,8 @@ public class GameController : MonoBehaviour
 
     private void RenderFlipCount()
     {
-        BestFlipCountDisplay.text = _gameData.BestFlips.ToString();
+        int best = _gameData.BestFlips;
+        BestFlipCountDisplay.text = best != 0 ? _gameData.BestFlips.ToString() : "-";
         FlipCountDisplay.text = _gameData.CurrentFlips.ToString();
     }
 
