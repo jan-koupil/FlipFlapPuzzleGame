@@ -27,8 +27,6 @@ public class GameController : MonoBehaviour
     [SerializeField] float RiseHeight = 0.15f;
     [SerializeField] float FinalMenuDelay = 1.5f;
 
-    [SerializeField] TMP_Text FlipCountDisplay;
-    [SerializeField] TMP_Text BestFlipCountDisplay;
     [SerializeField] GameObject FinalDialogBox;
     [SerializeField] GameObject StartMessageBox;
 
@@ -306,7 +304,6 @@ public class GameController : MonoBehaviour
 
         _gameState = GameState.Init;
         _gameData.CurrentFlips = 0;
-        RenderFlipCount();
 
         int height = map.GetLength(0);
         int width = map.GetLength(1);
@@ -460,13 +457,6 @@ public class GameController : MonoBehaviour
         Win();
     }
 
-    private void RenderFlipCount()
-    {
-        int best = _gameData.BestFlips;
-        BestFlipCountDisplay.text = best != 0 ? _gameData.BestFlips.ToString() : "-";
-        FlipCountDisplay.text = _gameData.CurrentFlips.ToString();
-    }
-
     private void StartFlipping(Vector3 direction)
     {
         if (_isRolling || _gameState != GameState.Running)
@@ -475,7 +465,6 @@ public class GameController : MonoBehaviour
         Bounds bounds = GetFlipperBounds(_flippers);
 
         _gameData.CurrentFlips++;
-        RenderFlipCount();
 
         var flipDirRay = new Ray(bounds.center, direction * -1);
         bounds.IntersectRay(flipDirRay, out float distance);
