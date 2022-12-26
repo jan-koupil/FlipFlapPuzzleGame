@@ -29,10 +29,9 @@ public class GameController : MonoBehaviour
     [SerializeField] float FinalMenuDelay = 1.5f;
 
     [SerializeField] GameObject MessageBoxCanvas;
-    [SerializeField] GameObject FinalDialogBox;
-    [SerializeField] GameObject StartMessageBox;
+    [SerializeField] GameObject FinalDialogBoxPrefab;
+    [SerializeField] GameObject StartMessageBoxPrefab;
 
-    private FinalDialogBoxController _finalDialogBoxController;
     private Level _level;
 
     /// <summary>
@@ -57,9 +56,7 @@ public class GameController : MonoBehaviour
 
     private void Awake()
     {
-        _finalDialogBoxController = FinalDialogBox.GetComponent<FinalDialogBoxController>();
         _gameData = GameObject.FindObjectOfType<GameData>();
-
     }
 
     void Start()
@@ -277,7 +274,6 @@ public class GameController : MonoBehaviour
     private void GameOver()
     {
         _gameState = GameState.Fail;
-        _finalDialogBoxController.SetModeGameOver();
         StartCoroutine(DelayMenuShow(FinalMenuDelay));
     }
 
@@ -286,7 +282,13 @@ public class GameController : MonoBehaviour
     {
         yield return new WaitForSeconds(delayTime);
 
-        _finalDialogBoxController.Show();
+        GameObject fdb = Instantiate(FinalDialogBoxPrefab, MessageBoxCanvas.transform);
+        var fdbCtrl = fdb.GetComponent<FinalDialogBoxController>();
+
+        if (_gameState == GameState.Win)
+            fdbCtrl.SetModeVictory();
+        else if (_gameState == GameState.Fail)
+            fdbCtrl.SetModeGameOver();
     }
 
 
@@ -301,8 +303,6 @@ public class GameController : MonoBehaviour
         _targetTiles = new();
         _flippers = new();
         _passives = new();
-
-        _finalDialogBoxController.Hide();
 
         _gameState = GameState.Init;
         _gameData.CurrentFlips = 0;
@@ -429,7 +429,6 @@ public class GameController : MonoBehaviour
         _gameState = GameState.Win;
         _gameData.BestFlips = _gameData.CurrentFlips;
 
-        _finalDialogBoxController.SetModeVictory();
         StartCoroutine(DelayMenuShow(FinalMenuDelay));
 
         _gameData.Level++;
@@ -495,7 +494,7 @@ public class GameController : MonoBehaviour
 
     private void ShowStartMessageBox()
     {
-        GameObject smb = Instantiate(StartMessageBox, MessageBoxCanvas.transform);
+        GameObject smb = Instantiate(StartMessageBoxPrefab, MessageBoxCanvas.transform);
         
         var smbCtrl = smb.GetComponent<StartMessageBoxController>();
         smbCtrl.LevelNo = _gameData.Level;
@@ -506,6 +505,3 @@ public class GameController : MonoBehaviour
         };
     }
 }
-
-
-
