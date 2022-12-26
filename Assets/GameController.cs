@@ -31,6 +31,7 @@ public class GameController : MonoBehaviour
     [SerializeField] GameObject MessageBoxCanvas;
     [SerializeField] GameObject FinalDialogBoxPrefab;
     [SerializeField] GameObject StartMessageBoxPrefab;
+    [SerializeField] GameObject ControlPanelPrefab;
 
     private Level _level;
 
@@ -73,10 +74,7 @@ public class GameController : MonoBehaviour
         _gameMap = ParseTextMap(_level.TextMap);
 
         SetUpGame(_gameMap);
-        //_startMessageBoxController.Show(_gameData.Level, _level.Code);
         ShowStartMessageBox();
-
-
     }
 
     // Update is called once per frame
@@ -187,7 +185,7 @@ public class GameController : MonoBehaviour
         }
     }
 
-        private void RoundPositions()
+    private void RoundPositions()
     {
         foreach (var flipper in _flippers)
         {
@@ -346,7 +344,11 @@ public class GameController : MonoBehaviour
 
     public void StartGame()
     {
+        if (Application.isMobilePlatform)
+            ShowControlPanel();
+
         _gameState = GameState.Running;
+
     }
 
     private void DestroyAll(List<GameObject> objects)
@@ -475,23 +477,6 @@ public class GameController : MonoBehaviour
         StartCoroutine(Flip(_flippers, anchor, axis));
     }
 
-    public void FlipUp()
-    {
-        StartFlipping(Vector3.forward);
-    }
-    public void FlipDown()
-    {
-        StartFlipping(Vector3.back);
-    }
-    public void FlipLeft()
-    {
-        StartFlipping(Vector3.left);
-    }
-    public void FlipRight()
-    {
-        StartFlipping(Vector3.right);
-    }
-
     private void ShowStartMessageBox()
     {
         GameObject smb = Instantiate(StartMessageBoxPrefab, MessageBoxCanvas.transform);
@@ -503,5 +488,17 @@ public class GameController : MonoBehaviour
         smbCtrl.OnClose = () => {
             StartGame();
         };
+    }
+
+    private void ShowControlPanel()
+    {
+        GameObject ctrlPanel = Instantiate(ControlPanelPrefab, MessageBoxCanvas.transform);
+
+        var panelController = ctrlPanel.GetComponent<CTRLPanelController>();
+
+        panelController.DownAction = () => StartFlipping(Vector3.back);
+        panelController.UpAction = () => StartFlipping(Vector3.forward);
+        panelController.LeftAction = () => StartFlipping(Vector3.left);
+        panelController.RightAction = () => StartFlipping(Vector3.right);
     }
 }
