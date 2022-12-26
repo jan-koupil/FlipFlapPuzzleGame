@@ -28,8 +28,7 @@ public class HelpDialogController : MonoBehaviour
 
     public void OnCloseBtnClick()
     {
-        if (OnClose != null)
-            OnClose();
+        OnClose?.Invoke();
 
         Destroy(gameObject);
     }

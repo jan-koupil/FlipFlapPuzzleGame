@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
 using static UnityEngine.GraphicsBuffer;
@@ -27,10 +28,10 @@ public class GameController : MonoBehaviour
     [SerializeField] float RiseHeight = 0.15f;
     [SerializeField] float FinalMenuDelay = 1.5f;
 
+    [SerializeField] GameObject MessageBoxCanvas;
     [SerializeField] GameObject FinalDialogBox;
     [SerializeField] GameObject StartMessageBox;
 
-    private StartMessageBoxController _startMessageBoxController;
     private FinalDialogBoxController _finalDialogBoxController;
     private Level _level;
 
@@ -56,7 +57,6 @@ public class GameController : MonoBehaviour
 
     private void Awake()
     {
-        _startMessageBoxController = StartMessageBox.GetComponent<StartMessageBoxController>();
         _finalDialogBoxController = FinalDialogBox.GetComponent<FinalDialogBoxController>();
         _gameData = GameObject.FindObjectOfType<GameData>();
 
@@ -76,7 +76,10 @@ public class GameController : MonoBehaviour
         _gameMap = ParseTextMap(_level.TextMap);
 
         SetUpGame(_gameMap);
-        _startMessageBoxController.Show(_gameData.Level, _level.Code);
+        //_startMessageBoxController.Show(_gameData.Level, _level.Code);
+        ShowStartMessageBox();
+
+
     }
 
     // Update is called once per frame
@@ -84,8 +87,7 @@ public class GameController : MonoBehaviour
     {
         if (
             Input.GetKeyDown(KeyCode.Backspace) && 
-            _gameState != GameState.Win && 
-            !_startMessageBoxController.IsVisible
+            _gameState != GameState.Win 
         )
         { 
             SetUpGame(_gameMap);
@@ -344,7 +346,6 @@ public class GameController : MonoBehaviour
 
     public void StartGame()
     {
-        _startMessageBoxController.Hide();
         _gameState = GameState.Running;
     }
 
@@ -490,6 +491,19 @@ public class GameController : MonoBehaviour
     public void FlipRight()
     {
         StartFlipping(Vector3.right);
+    }
+
+    private void ShowStartMessageBox()
+    {
+        GameObject smb = Instantiate(StartMessageBox, MessageBoxCanvas.transform);
+        
+        var smbCtrl = smb.GetComponent<StartMessageBoxController>();
+        smbCtrl.LevelNo = _gameData.Level;
+        smbCtrl.LevelCode = _level.Code;
+
+        smbCtrl.OnClose = () => {
+            StartGame();
+        };
     }
 }
 
