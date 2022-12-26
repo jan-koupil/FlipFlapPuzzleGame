@@ -27,7 +27,7 @@ public class FinalDialogBoxController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        this.Hide();       
+        EventSystem.current.SetSelectedGameObject(_UISelectables[0]);
     }
     private void Update()
     {
@@ -52,15 +52,6 @@ public class FinalDialogBoxController : MonoBehaviour
                 EventSystem.current.SetSelectedGameObject(_UISelectables[UIIndex]);
             }
         }
-    }
-    public void Show()
-    {
-        gameObject.SetActive(true);
-        EventSystem.current.SetSelectedGameObject(_UISelectables[0]);
-    }
-    public void Hide()
-    {
-        gameObject.SetActive(false);
     }
     public void SetModeGameOver()
     {

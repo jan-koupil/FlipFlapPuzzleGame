@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -9,32 +10,30 @@ using UnityEngine.UI;
 public class StartMessageBoxController : MonoBehaviour
 {
     private TMP_Text _message;    
-    private Button _continueBtn;    
-    public bool IsVisible { get; private set; }
+    public Action OnClose = null;
+    public int LevelNo { get; set; }
+    public string LevelCode { get; set; }
 
     private void Awake()
     {
         _message = transform.Find("MessageText").gameObject.GetComponent<TMP_Text>();
-        _continueBtn = transform.Find("ContinueBtn").gameObject.GetComponent<Button>();
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        this.Hide();
-    }
-
-    // Update is called once per frame
-    public void Show(int levelNo, string code)
-    {
-        _message.text = $"Level: {levelNo}\nCode: {code}";
-        gameObject.SetActive(true);
-        IsVisible = true;
         EventSystem.current.SetSelectedGameObject(transform.Find("ContinueBtn").gameObject);
     }
-    public void Hide()
+
+    public void Update ()
     {
-        gameObject.SetActive(false);
-        IsVisible = false;
+        _message.text = $"Level: {LevelNo}\nCode: {LevelCode}";
+    }
+
+    public void OnCloseBtnClick()
+    {
+        OnClose?.Invoke();
+
+        Destroy(gameObject);
     }
 }

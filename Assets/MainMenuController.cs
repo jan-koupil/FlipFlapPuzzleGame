@@ -9,6 +9,8 @@ using UnityEngine.UI;
 
 public class MainMenuController : MonoBehaviour
 {
+    [SerializeField] GameObject HelpWindow;
+
     private GameData _gameData;
     private Color _defaultBgColor;
     private TMP_Text _levelText;
@@ -25,6 +27,7 @@ public class MainMenuController : MonoBehaviour
         _UISelectables.Add(transform.Find("StartBtn").gameObject);
         _UISelectables.Add(transform.Find("CodeInput").gameObject);
         _UISelectables.Add(transform.Find("LoadBtn").gameObject);
+        _UISelectables.Add(transform.Find("HelpBtn").gameObject);
         _UISelectables.Add(transform.Find("ExitBtn").gameObject);
     }
 
@@ -34,7 +37,7 @@ public class MainMenuController : MonoBehaviour
         RenderLevelNo();
         //EventSystem.current.SetSelectedGameObject(transform.Find("StartBtn").gameObject);
         EventSystem.current.SetSelectedGameObject(_UISelectables[0]);
-        //transform.Find("StartBtn").gameObject.GetComponent<UnityEngine.UIElements.Button>().Focus(); ;
+        //transform.Find("StartBtn").gameObject.GetComponent<UnityEngine.UIElements.Button>().Focus(); 
     }
 
     void Update()
@@ -66,6 +69,18 @@ public class MainMenuController : MonoBehaviour
     public void StartGame()
     {
         SceneManager.LoadScene("GameScene");
+    }
+
+    public void ShowHelp()
+    {
+        gameObject.SetActive(false);
+
+        GameObject hw = Instantiate(HelpWindow, this.transform.parent);
+        var hwCtrl = hw.GetComponent<HelpDialogController>();
+        hwCtrl.OnClose = () => { 
+            gameObject.SetActive(true);
+            EventSystem.current.SetSelectedGameObject(transform.Find("HelpBtn").gameObject);
+        };
     }
 
     public void ExitGame()

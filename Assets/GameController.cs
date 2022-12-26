@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
 using static UnityEngine.GraphicsBuffer;
@@ -27,13 +28,11 @@ public class GameController : MonoBehaviour
     [SerializeField] float RiseHeight = 0.15f;
     [SerializeField] float FinalMenuDelay = 1.5f;
 
-    [SerializeField] TMP_Text FlipCountDisplay;
-    [SerializeField] TMP_Text BestFlipCountDisplay;
-    [SerializeField] GameObject FinalDialogBox;
-    [SerializeField] GameObject StartMessageBox;
+    [SerializeField] GameObject MessageBoxCanvas;
+    [SerializeField] GameObject FinalDialogBoxPrefab;
+    [SerializeField] GameObject StartMessageBoxPrefab;
+    [SerializeField] GameObject ControlPanelPrefab;
 
-    private StartMessageBoxController _startMessageBoxController;
-    private FinalDialogBoxController _finalDialogBoxController;
     private Level _level;
 
     /// <summary>
@@ -58,10 +57,7 @@ public class GameController : MonoBehaviour
 
     private void Awake()
     {
-        _startMessageBoxController = StartMessageBox.GetComponent<StartMessageBoxController>();
-        _finalDialogBoxController = FinalDialogBox.GetComponent<FinalDialogBoxController>();
         _gameData = GameObject.FindObjectOfType<GameData>();
-
     }
 
     void Start()
@@ -78,7 +74,7 @@ public class GameController : MonoBehaviour
         _gameMap = ParseTextMap(_level.TextMap);
 
         SetUpGame(_gameMap);
-        _startMessageBoxController.Show(_gameData.Level, _level.Code);
+        ShowStartMessageBox();
     }
 
     // Update is called once per frame
@@ -86,8 +82,7 @@ public class GameController : MonoBehaviour
     {
         if (
             Input.GetKeyDown(KeyCode.Backspace) && 
-            _gameState != GameState.Win && 
-            !_startMessageBoxController.IsVisible
+            _gameState != GameState.Win 
         )
         { 
             SetUpGame(_gameMap);
@@ -190,7 +185,7 @@ public class GameController : MonoBehaviour
         }
     }
 
-        private void RoundPositions()
+    private void RoundPositions()
     {
         foreach (var flipper in _flippers)
         {
@@ -277,7 +272,6 @@ public class GameController : MonoBehaviour
     private void GameOver()
     {
         _gameState = GameState.Fail;
-        _finalDialogBoxController.SetModeGameOver();
         StartCoroutine(DelayMenuShow(FinalMenuDelay));
     }
 
@@ -286,7 +280,13 @@ public class GameController : MonoBehaviour
     {
         yield return new WaitForSeconds(delayTime);
 
-        _finalDialogBoxController.Show();
+        GameObject fdb = Instantiate(FinalDialogBoxPrefab, MessageBoxCanvas.transform);
+        var fdbCtrl = fdb.GetComponent<FinalDialogBoxController>();
+
+        if (_gameState == GameState.Win)
+            fdbCtrl.SetModeVictory();
+        else if (_gameState == GameState.Fail)
+            fdbCtrl.SetModeGameOver();
     }
 
 
@@ -302,11 +302,8 @@ public class GameController : MonoBehaviour
         _flippers = new();
         _passives = new();
 
-        _finalDialogBoxController.Hide();
-
         _gameState = GameState.Init;
         _gameData.CurrentFlips = 0;
-        RenderFlipCount();
 
         int height = map.GetLength(0);
         int width = map.GetLength(1);
@@ -347,8 +344,11 @@ public class GameController : MonoBehaviour
 
     public void StartGame()
     {
-        _startMessageBoxController.Hide();
+        if (Application.isMobilePlatform)
+            ShowControlPanel();
+
         _gameState = GameState.Running;
+
     }
 
     private void DestroyAll(List<GameObject> objects)
@@ -431,7 +431,6 @@ public class GameController : MonoBehaviour
         _gameState = GameState.Win;
         _gameData.BestFlips = _gameData.CurrentFlips;
 
-        _finalDialogBoxController.SetModeVictory();
         StartCoroutine(DelayMenuShow(FinalMenuDelay));
 
         _gameData.Level++;
@@ -460,13 +459,6 @@ public class GameController : MonoBehaviour
         Win();
     }
 
-    private void RenderFlipCount()
-    {
-        int best = _gameData.BestFlips;
-        BestFlipCountDisplay.text = best != 0 ? _gameData.BestFlips.ToString() : "-";
-        FlipCountDisplay.text = _gameData.CurrentFlips.ToString();
-    }
-
     private void StartFlipping(Vector3 direction)
     {
         if (_isRolling || _gameState != GameState.Running)
@@ -475,7 +467,6 @@ public class GameController : MonoBehaviour
         Bounds bounds = GetFlipperBounds(_flippers);
 
         _gameData.CurrentFlips++;
-        RenderFlipCount();
 
         var flipDirRay = new Ray(bounds.center, direction * -1);
         bounds.IntersectRay(flipDirRay, out float distance);
@@ -486,23 +477,28 @@ public class GameController : MonoBehaviour
         StartCoroutine(Flip(_flippers, anchor, axis));
     }
 
-    public void FlipUp()
+    private void ShowStartMessageBox()
     {
-        StartFlipping(Vector3.forward);
+        GameObject smb = Instantiate(StartMessageBoxPrefab, MessageBoxCanvas.transform);
+        
+        var smbCtrl = smb.GetComponent<StartMessageBoxController>();
+        smbCtrl.LevelNo = _gameData.Level;
+        smbCtrl.LevelCode = _level.Code;
+
+        smbCtrl.OnClose = () => {
+            StartGame();
+        };
     }
-    public void FlipDown()
+
+    private void ShowControlPanel()
     {
-        StartFlipping(Vector3.back);
-    }
-    public void FlipLeft()
-    {
-        StartFlipping(Vector3.left);
-    }
-    public void FlipRight()
-    {
-        StartFlipping(Vector3.right);
+        GameObject ctrlPanel = Instantiate(ControlPanelPrefab, MessageBoxCanvas.transform);
+
+        var panelController = ctrlPanel.GetComponent<CTRLPanelController>();
+
+        panelController.DownAction = () => StartFlipping(Vector3.back);
+        panelController.UpAction = () => StartFlipping(Vector3.forward);
+        panelController.LeftAction = () => StartFlipping(Vector3.left);
+        panelController.RightAction = () => StartFlipping(Vector3.right);
     }
 }
-
-
-
