@@ -3,16 +3,29 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class BtnPanelController : MonoBehaviour
 {
     [SerializeField] GameObject HelpWindow;
-    [SerializeField] Camera Camera;
+    [SerializeField] Camera Cam;
+
+    private GameData _gameData;
+
+    private GameObject _zoomInBtn;
+    private GameObject _zoomOutBtn;
+
+    private void Awake()
+    {
+        _gameData = GameObject.FindObjectOfType<GameData>();
+    }
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        _zoomInBtn = transform.Find("ZoomInBtn").gameObject;
+        _zoomOutBtn = transform.Find("ZoomOutBtn").gameObject;
+        SetZoom();
     }
 
     public void DisableAll()
@@ -27,12 +40,21 @@ public class BtnPanelController : MonoBehaviour
 
     public void ZoomIn()
     {
-
+        _gameData.Zoom--;
+        SetZoom();
     }
 
     public void ZoomOut()
     {
+        _gameData.Zoom++;
+        SetZoom();
+    }
 
+    private void SetZoom()
+    {
+        Cam.orthographicSize = _gameData.Zoom;
+        _zoomInBtn.GetComponent<Button>().interactable = !_gameData.IsMinZoom;
+        _zoomOutBtn.GetComponent<Button>().interactable = !_gameData.IsMaxZoom;
     }
 
     public void ShowHelp()

@@ -758,7 +758,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HelpWindow: {fileID: 7200682270098325926, guid: d82289e16ddbfb147bfc902ac086bd9e, type: 3}
-  Camera: {fileID: 1601828016}
+  Cam: {fileID: 1601828016}
 --- !u!1 &835054999
 GameObject:
   m_ObjectHideFlags: 0
@@ -1767,7 +1767,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1434336532}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 810747686}
+        m_TargetAssemblyTypeName: BtnPanelController, Assembly-CSharp
+        m_MethodName: ZoomOut
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1434336532
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2413,7 +2425,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1911068377}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 810747686}
+        m_TargetAssemblyTypeName: BtnPanelController, Assembly-CSharp
+        m_MethodName: ZoomIn
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1911068377
 MonoBehaviour:
   m_ObjectHideFlags: 0
