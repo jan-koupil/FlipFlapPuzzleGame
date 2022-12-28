@@ -45,4 +45,6 @@ public class GameData : MonoBehaviour
     public bool IsMaxZoom { get => _zoom == MaxZoom; }
     public bool IsMinZoom { get => _zoom == MinZoom; }
 
+    public bool LockedCamera { get; set; } = true;
+
 }

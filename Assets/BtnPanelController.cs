@@ -14,6 +14,7 @@ public class BtnPanelController : MonoBehaviour
 
     private GameObject _zoomInBtn;
     private GameObject _zoomOutBtn;
+    private GameObject _camLockBtn;
 
     private void Awake()
     {
@@ -25,17 +26,30 @@ public class BtnPanelController : MonoBehaviour
     {
         _zoomInBtn = transform.Find("ZoomInBtn").gameObject;
         _zoomOutBtn = transform.Find("ZoomOutBtn").gameObject;
+        _camLockBtn = transform.Find("CamLockBtn").gameObject;
         SetZoom();
+        SetCamToogleColor();
     }
 
-    public void DisableAll()
-    {
+    //public void DisableAll()
+    //{
 
+    //}
+
+    //public void EnableAll()
+    //{
+
+    //}
+
+    public void ToggleCameraLock()
+    {
+        _gameData.LockedCamera = !_gameData.LockedCamera;
+        SetCamToogleColor();
     }
 
-    public void EnableAll()
+    private void SetCamToogleColor()
     {
-
+        _camLockBtn.GetComponent<Image>().color = _gameData.LockedCamera ? Color.yellow : Color.green;
     }
 
     public void ZoomIn()

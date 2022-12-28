@@ -15,8 +15,8 @@ public class GameController : MonoBehaviour
 {
     // Start is called before the first frame update
 
-    [SerializeField] GameObject FloorTile;
-    [SerializeField] GameObject FlipTile;
+    [SerializeField] GameObject FloorTilePrefab;
+    [SerializeField] GameObject FlipTilePrefab;
 
     [SerializeField] Material FlippingMaterial;
     [SerializeField] Material PassiveMaterial;
@@ -32,6 +32,9 @@ public class GameController : MonoBehaviour
     [SerializeField] GameObject FinalDialogBoxPrefab;
     [SerializeField] GameObject StartMessageBoxPrefab;
     [SerializeField] GameObject ControlPanelPrefab;
+
+    [SerializeField] Camera MainCamera;
+    private GameObject _cameraPivot;
 
     private Level _level;
 
@@ -58,6 +61,7 @@ public class GameController : MonoBehaviour
     private void Awake()
     {
         _gameData = GameObject.FindObjectOfType<GameData>();
+        _cameraPivot = MainCamera.transform.parent.gameObject;
     }
 
     void Start()
@@ -80,6 +84,15 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!_gameData.LockedCamera && _flippers.Count > 0)
+        {
+            GameObject flippy = _flippers.First();
+            Vector3 newPosition = _cameraPivot.transform.position;
+            newPosition.x = flippy.transform.position.x;
+            newPosition.z = flippy.transform.position.z;
+            _cameraPivot.transform.position = newPosition;
+        }
+
         if (
             Input.GetKeyDown(KeyCode.Backspace) && 
             _gameState != GameState.Win 
@@ -401,7 +414,7 @@ public class GameController : MonoBehaviour
     private void PutFloorAt(Vector3 location, bool isTarget = false)
     {
         location.y = -0.25f * _tileSize;
-        GameObject tile = Instantiate(FloorTile, location, Quaternion.identity);
+        GameObject tile = Instantiate(FloorTilePrefab, location, Quaternion.identity);
         Material material = isTarget ? TargetMaterial : FloorMaterial;
         foreach (Transform child in tile.transform)
             child.gameObject.GetComponent<MeshRenderer>().material = material;
@@ -414,7 +427,7 @@ public class GameController : MonoBehaviour
     private void PutFlipperAt(Vector3 location, bool isPassive = false)
     {
         location.y = 0.05f * _tileSize;
-        GameObject tile = Instantiate(FlipTile, location, Quaternion.identity);
+        GameObject tile = Instantiate(FlipTilePrefab, location, Quaternion.identity);
         Material material = isPassive ? PassiveMaterial : FlippingMaterial;
         tile.GetComponent<MeshRenderer>().material = material;
 

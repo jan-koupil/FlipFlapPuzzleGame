@@ -1523,7 +1523,7 @@ MonoBehaviour:
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
@@ -1543,7 +1543,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1220249930}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 810747686}
+        m_TargetAssemblyTypeName: BtnPanelController, Assembly-CSharp
+        m_MethodName: ToggleCameraLock
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1220249930
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1557,7 +1569,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.21176471, g: 0.92941177, b: 1, a: 1}
+  m_Color: {r: 0.19607845, g: 0.8941177, b: 0.9607844, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2520,8 +2532,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 374f0efb4d31c0441becf5952823bb4b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FloorTile: {fileID: 9214018770612125427, guid: d05e95194913a114c84159799a7357ab, type: 3}
-  FlipTile: {fileID: 2965128951323548165, guid: 7df9b904c0cd61e48a7e930c7563c001, type: 3}
+  FloorTilePrefab: {fileID: 9214018770612125427, guid: d05e95194913a114c84159799a7357ab, type: 3}
+  FlipTilePrefab: {fileID: 2965128951323548165, guid: 7df9b904c0cd61e48a7e930c7563c001, type: 3}
   FlippingMaterial: {fileID: 2100000, guid: dce42fdcb6802d241baec93da67a999b, type: 2}
   PassiveMaterial: {fileID: 2100000, guid: 7991a4837a32ac24a9fe06a26b789483, type: 2}
   FloorMaterial: {fileID: 2100000, guid: a4a1647042ba2fc4a879156e66d46e9f, type: 2}
@@ -2529,11 +2541,12 @@ MonoBehaviour:
   RollSpeed: 6
   RiseSpeed: 0.005
   RiseHeight: 0.15
-  FinalMenuDelay: 1.5
+  FinalMenuDelay: 1
   MessageBoxCanvas: {fileID: 524088942}
   FinalDialogBoxPrefab: {fileID: 6712589084834427548, guid: 57994cd827216dc47a2280541db1c172, type: 3}
   StartMessageBoxPrefab: {fileID: 5954792582249369623, guid: de687b17283911248a3d5ee1b0207b32, type: 3}
   ControlPanelPrefab: {fileID: 8073855034508097696, guid: 5e103df62082d19439dcd6060c02dbee, type: 3}
+  MainCamera: {fileID: 1601828016}
 --- !u!1 &2133983356
 GameObject:
   m_ObjectHideFlags: 0
