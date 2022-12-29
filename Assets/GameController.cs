@@ -87,9 +87,18 @@ public class GameController : MonoBehaviour
         if (!_gameData.LockedCamera && _flippers.Count > 0)
         {
             GameObject flippy = _flippers.First();
-            Vector3 newPosition = _cameraPivot.transform.position;
-            newPosition.x = flippy.transform.position.x;
-            newPosition.z = flippy.transform.position.z;
+
+            if (_gameData.CamUnlockEvent) //right now camera was unlocked
+            {
+                Vector3 camOffset = _cameraPivot.transform.position - flippy.transform.position;
+                camOffset.y = 0;
+                _gameData.CameraOffset = camOffset;
+                _gameData.SetCamUnlockEventProcessed(); //release flag "now was unlocked"
+            }
+
+            Vector3 newPosition = flippy.transform.position + _gameData.CameraOffset;
+            newPosition.y = _cameraPivot.transform.position.y;
+
             _cameraPivot.transform.position = newPosition;
         }
 
@@ -443,7 +452,7 @@ public class GameController : MonoBehaviour
         StartCoroutine(Highlight(_flippers));
         _gameState = GameState.Win;
         _gameData.BestFlips = _gameData.CurrentFlips;
-
+        _gameData.ResetCameraState();
         StartCoroutine(DelayMenuShow(FinalMenuDelay));
 
         _gameData.Level++;

@@ -1,12 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Playables;
 
 public class GameData : MonoBehaviour
 {
     void Awake()
     {
         DontDestroyOnLoad(this);
+        Zoom = InitZoom;
     }
 
     private Dictionary<int, int> _bestFlipList = new();
@@ -30,14 +32,14 @@ public class GameData : MonoBehaviour
 
     [SerializeField] int MinZoom = 1;
     [SerializeField] int MaxZoom = 10;
-
-    private int _zoom = 5;
+    [SerializeField] int InitZoom = 5;
+    private int _zoom;
 
     public int Zoom
     {
         get { return _zoom; }
         set { 
-            if (_zoom <= MaxZoom && _zoom >= MinZoom)
+            if (value <= MaxZoom && value >= MinZoom)
                 _zoom = value; 
         }
     }
@@ -45,6 +47,36 @@ public class GameData : MonoBehaviour
     public bool IsMaxZoom { get => _zoom == MaxZoom; }
     public bool IsMinZoom { get => _zoom == MinZoom; }
 
-    public bool LockedCamera { get; set; } = true;
+    private bool _lockedCamera = true;
+
+    public bool LockedCamera
+    {
+        get { return _lockedCamera; }
+        set 
+        {
+            if (CamUnlockEvent) return; //don't un/lock until previous lock is processed
+            
+            _lockedCamera = value;
+            
+            if (!_lockedCamera) //now i am unlocking camera, it will follow flippy
+                CamUnlockEvent = true;
+        }
+    }
+
+    public bool CamUnlockEvent { get; private set; }
+
+    public void SetCamUnlockEventProcessed()
+    {
+        CamUnlockEvent = false;
+    }
+    
+    public Vector3 CameraOffset { get; set; } = Vector3.zero;
+
+    public void ResetCameraState()
+    {
+        LockedCamera = true;
+        CameraOffset = Vector3.zero;
+        SetCamUnlockEventProcessed();
+    }
 
 }

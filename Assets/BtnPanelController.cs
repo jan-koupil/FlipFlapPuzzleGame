@@ -28,7 +28,7 @@ public class BtnPanelController : MonoBehaviour
         _zoomOutBtn = transform.Find("ZoomOutBtn").gameObject;
         _camLockBtn = transform.Find("CamLockBtn").gameObject;
         SetZoom();
-        SetCamToogleColor();
+        SetCamToggleColor();
     }
 
     //public void DisableAll()
@@ -44,10 +44,10 @@ public class BtnPanelController : MonoBehaviour
     public void ToggleCameraLock()
     {
         _gameData.LockedCamera = !_gameData.LockedCamera;
-        SetCamToogleColor();
+        SetCamToggleColor();
     }
 
-    private void SetCamToogleColor()
+    private void SetCamToggleColor()
     {
         _camLockBtn.GetComponent<Image>().color = _gameData.LockedCamera ? Color.yellow : Color.green;
     }

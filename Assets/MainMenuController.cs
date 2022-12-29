@@ -34,6 +34,7 @@ public class MainMenuController : MonoBehaviour
     void Start()
     {
         _defaultBgColor = _codeInput.colors.normalColor;
+        _gameData.ResetCameraState();
         RenderLevelNo();
         //EventSystem.current.SetSelectedGameObject(transform.Find("StartBtn").gameObject);
         EventSystem.current.SetSelectedGameObject(_UISelectables[0]);
