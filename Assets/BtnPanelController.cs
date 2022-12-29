@@ -41,6 +41,27 @@ public class BtnPanelController : MonoBehaviour
 
     //}
 
+    public void Update()
+    {
+        if ( Input.GetKeyDown(KeyCode.C) )
+        {
+            ToggleCameraLock();
+        }
+        else if (Input.GetKeyDown(KeyCode.H) )
+        {
+            ShowHelp();
+        }
+        else if (Input.GetKeyDown(KeyCode.KeypadPlus))
+        {
+            ZoomIn();
+        }
+        else if (Input.GetKeyDown(KeyCode.KeypadMinus))
+        {
+            ZoomOut();
+        }
+
+    }
+
     public void ToggleCameraLock()
     {
         _gameData.LockedCamera = !_gameData.LockedCamera;
