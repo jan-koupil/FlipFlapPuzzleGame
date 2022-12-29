@@ -108,13 +108,13 @@ public class GameController : MonoBehaviour
         if (Input.anyKey)
         {
 
-            if (Input.GetKey(KeyCode.A))
+            if (Input.GetKey(KeyCode.UpArrow))
                 StartFlipping(Vector3.forward);
-            else if (Input.GetKey(KeyCode.Z))
+            else if (Input.GetKey(KeyCode.DownArrow))
                 StartFlipping(Vector3.back);
-            else if (Input.GetKey(KeyCode.N))
+            else if (Input.GetKey(KeyCode.LeftArrow))
                 StartFlipping(Vector3.left);
-            else if (Input.GetKey(KeyCode.M))
+            else if (Input.GetKey(KeyCode.RightArrow))
                 StartFlipping(Vector3.right);
 
         }
