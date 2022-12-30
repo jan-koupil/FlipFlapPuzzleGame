@@ -23,7 +23,10 @@ public class GameController : MonoBehaviour
     [SerializeField] Material FloorMaterial;
     [SerializeField] Material TargetMaterial;
 
-    [SerializeField] float RollSpeed = 3;
+    /// <summary>
+    /// Time for one flip
+    /// </summary>
+    [SerializeField] float FlipDuration = 1f;
     [SerializeField] float RiseSpeed = 0.005f;
     [SerializeField] float RiseHeight = 0.15f;
     [SerializeField] float FinalMenuDelay = 1.5f;
@@ -163,14 +166,32 @@ public class GameController : MonoBehaviour
 
     IEnumerator Flip(List<GameObject> flippers, Vector3 anchor, Vector3 axis)
     {
-        _isRolling = true;
+        _isRolling = true;        
+        float angularVelocity = 180 / FlipDuration;
+        float totalAngle = 0;
+        float startTime = Time.time;
 
-        for (int i = 0; i < (180 / RollSpeed); i++)
+        while (totalAngle < 180)
         {
+            float deltaTime = Time.time - startTime;
+            float maxAngle = 180 - totalAngle;
+            float angle = angularVelocity * deltaTime;
+
+            if (angle < maxAngle)
+            {
+                totalAngle += angle;
+            }
+            else
+            {
+                angle = maxAngle;
+                totalAngle = 180;
+            }
+
             foreach (var flipper in flippers)
             {
-                flipper.transform.RotateAround(anchor, axis, RollSpeed);
+                flipper.transform.RotateAround(anchor, axis, angle);
             }
+
             CheckFlipOverFlipper();
             yield return null;
             //yield return new WaitForSeconds(0.01f);
