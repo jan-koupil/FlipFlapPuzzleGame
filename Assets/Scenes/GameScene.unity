@@ -2436,7 +2436,7 @@ MonoBehaviour:
   FloorMaterial: {fileID: 2100000, guid: a4a1647042ba2fc4a879156e66d46e9f, type: 2}
   TargetMaterial: {fileID: 2100000, guid: e02b3b5589d2b9e4bbba009aea15f8d3, type: 2}
   FlipDuration: 0.33333334
-  RiseSpeed: 0.005
+  RiseDuration: 0.5
   RiseHeight: 0.15
   FinalMenuDelay: 1
   MessageBoxCanvas: {fileID: 524088942}

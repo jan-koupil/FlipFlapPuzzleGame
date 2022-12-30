@@ -23,11 +23,8 @@ public class GameController : MonoBehaviour
     [SerializeField] Material FloorMaterial;
     [SerializeField] Material TargetMaterial;
 
-    /// <summary>
-    /// Time for one flip
-    /// </summary>
-    [SerializeField] float FlipDuration = 1f;
-    [SerializeField] float RiseSpeed = 0.005f;
+    [SerializeField] float FlipDuration = 1f/3;
+    [SerializeField] float RiseDuration = 1f;
     [SerializeField] float RiseHeight = 0.15f;
     [SerializeField] float FinalMenuDelay = 1.5f;
 
@@ -243,15 +240,35 @@ public class GameController : MonoBehaviour
 
     IEnumerator Highlight(List<GameObject> endObjects)
     {
-        float steps = RiseHeight * _tileSize / RiseSpeed;
-        for (int i = 0; i < steps; i++)
+
+        float maxHeight = RiseHeight * _tileSize;
+        float riseVelocity = maxHeight / RiseDuration;
+        float totalHeight = 0;
+        float lastTime = Time.time;
+
+        while (totalHeight < maxHeight)
         {
+            float deltaTime = Time.time - lastTime;
+            lastTime = Time.time;
+            float maxStep = maxHeight - totalHeight;
+            float step = riseVelocity * deltaTime;
+
+            if (step <= maxStep)
+            {
+                totalHeight += step;
+            }
+            else
+            {
+                step = maxStep;
+                totalHeight = maxHeight;
+            }
+
             foreach (GameObject go in endObjects)
             {
-                go.transform.position += Vector3.up * RiseSpeed * _tileSize;
+                go.transform.position += Vector3.up * step;
             }
-            //yield return null;
-            yield return new WaitForSeconds(0.01f);
+            yield return null;
+//            yield return new WaitForSeconds(0.01f);
         }
     }
 
@@ -479,7 +496,7 @@ public class GameController : MonoBehaviour
         _gameState = GameState.Win;
         _gameData.BestFlips = _gameData.CurrentFlips;
         _gameData.ResetCameraState();
-        StartCoroutine(DelayMenuShow(FinalMenuDelay));
+        StartCoroutine(DelayMenuShow(RiseDuration + FinalMenuDelay));
 
         _gameData.Level++;
     }
