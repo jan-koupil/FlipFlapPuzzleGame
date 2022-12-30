@@ -66,6 +66,7 @@ public class GameController : MonoBehaviour
 
     void Start()
     {
+        Screen.orientation = ScreenOrientation.LandscapeLeft;
         _gameState = GameState.Init;
 
         _level = Level.GetLevel(_gameData.Level);        
@@ -301,6 +302,9 @@ public class GameController : MonoBehaviour
     IEnumerator DelayMenuShow(float delayTime)
     {
         yield return new WaitForSeconds(delayTime);
+
+        if (_gameState != GameState.Win && _gameState != GameState.Fail)
+            yield break;
 
         GameObject fdb = Instantiate(FinalDialogBoxPrefab, MessageBoxCanvas.transform);
         var fdbCtrl = fdb.GetComponent<FinalDialogBoxController>();
