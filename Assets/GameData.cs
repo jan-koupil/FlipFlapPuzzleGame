@@ -2,16 +2,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Playables;
+using System.IO;
+using Newtonsoft.Json;
 
 public class GameData : MonoBehaviour
 {
+    private const string SaveGameFilename = "BestFlips.json";
+    private string _saveGameFullPath;
+
     void Awake()
     {
         DontDestroyOnLoad(this);
+        _saveGameFullPath = Application.persistentDataPath + Path.DirectorySeparatorChar + SaveGameFilename;
+        InitBestFlips();
         Zoom = InitZoom;
     }
 
-    private Dictionary<int, int> _bestFlipList = new();
+    private Dictionary<int, int> _bestFlipList;
 
     public int Level { get; set; } = 1;
     public int CurrentFlips { get; set; } = 0;
@@ -26,7 +33,10 @@ public class GameData : MonoBehaviour
         set
         {
             if (!_bestFlipList.ContainsKey(Level) || _bestFlipList[Level] >= value)
+            { 
                 _bestFlipList[Level] = value;
+                SaveBestFlips();
+            }
         } 
     }
 
@@ -79,4 +89,20 @@ public class GameData : MonoBehaviour
         SetCamUnlockEventProcessed();
     }
 
+    private void InitBestFlips()
+    {
+        if (File.Exists(_saveGameFullPath))
+        { 
+            string json = File.ReadAllText(_saveGameFullPath);
+            _bestFlipList = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
+        }
+        else
+            _bestFlipList = new();
+
+    }
+    private void SaveBestFlips()
+    {
+        string json = JsonConvert.SerializeObject(_bestFlipList);
+        File.WriteAllTextAsync(_saveGameFullPath, json);
+    }
 }
