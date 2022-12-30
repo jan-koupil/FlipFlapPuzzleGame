@@ -169,11 +169,12 @@ public class GameController : MonoBehaviour
         _isRolling = true;        
         float angularVelocity = 180 / FlipDuration;
         float totalAngle = 0;
-        float startTime = Time.time;
+        float lastTime = Time.time;
 
         while (totalAngle < 180)
         {
-            float deltaTime = Time.time - startTime;
+            float deltaTime = Time.time - lastTime;
+            lastTime = Time.time;
             float maxAngle = 180 - totalAngle;
             float angle = angularVelocity * deltaTime;
 
