@@ -42,7 +42,7 @@ public class Level
     {
         _levelList.Add(new Level(
             "XXXX\n" +
-            "XFSX\n" +
+            "XFXX\n" +
             "XXTX\n" +
             "XXXX\n",
             "SQUARE"
@@ -75,6 +75,14 @@ public class Level
             "DOUGHNUT"
         ));
 
+        _levelList.Add(new Level(
+            "FXS\n" +
+            "XST\n" +
+            "SXT\n" +
+            "XX \n" +
+            "P  \n",
+            "QUICKSAND"
+        ));
 
     }
 }
