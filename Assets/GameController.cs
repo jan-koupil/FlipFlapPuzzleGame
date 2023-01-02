@@ -10,6 +10,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
 using static UnityEngine.GraphicsBuffer;
+using static UnityEngine.Tilemaps.Tilemap;
 
 public class GameController : MonoBehaviour
 {
@@ -22,6 +23,7 @@ public class GameController : MonoBehaviour
     [SerializeField] Material PassiveMaterial;
     [SerializeField] Material FloorMaterial;
     [SerializeField] Material TargetMaterial;
+    [SerializeField] Material SandMaterial;
 
     [SerializeField] float FlipDuration = 1f/3;
     [SerializeField] float RiseDuration = 1f;
@@ -48,6 +50,7 @@ public class GameController : MonoBehaviour
     private const float _flipOverFlipperDist = 0.25f;
 
     private List<GameObject> _floor = null;
+    private List<GameObject> _sandTiles = null;
     private List<GameObject> _targetTiles = null;
     private List<GameObject> _flippers = null;
     private List<GameObject> _passives = null;
@@ -56,7 +59,7 @@ public class GameController : MonoBehaviour
     private GameData _gameData;
 
     private enum GameState : byte { Init, Running, Win, Fail }
-    private enum TileType : byte { Hole, Flipping, Passive, Floor, Target }
+    private enum TileType : byte { Hole, Flipping, Passive, Floor, Target, Sand }
 
     private void Awake()
     {
@@ -163,7 +166,9 @@ public class GameController : MonoBehaviour
 
     IEnumerator Flip(List<GameObject> flippers, Vector3 anchor, Vector3 axis)
     {
-        _isRolling = true;        
+        _isRolling = true;
+        ReleaseSand();
+        
         float angularVelocity = 180 / FlipDuration;
         float totalAngle = 0;
         float lastTime = Time.time;
@@ -322,13 +327,51 @@ public class GameController : MonoBehaviour
 
     private void BreakOverlap(GameObject overlappingTile)
     {
-        overlappingTile.transform.localScale *= 0.98f;
-        Rigidbody currentRb = overlappingTile.AddComponent<Rigidbody>();
-        currentRb.detectCollisions = true;
+        DropTileDown(overlappingTile);
+
         _flippers.Remove(overlappingTile);
         _passives.Add(overlappingTile);
 
         GameOver();
+    }
+
+
+    private void ReleaseSand()
+    {
+        foreach (GameObject sandTile in _sandTiles.ToArray())
+        {
+            foreach (GameObject flipper in _flippers)
+            {
+                float dist = Vector3.Distance(flipper.transform.position, sandTile.transform.position);
+                if (dist < _tileSize)
+                    DestroySandTile(sandTile);
+            }
+        }
+    }
+
+    private void DestroySandTile(GameObject sandTile)
+    {
+        DropTileDown(sandTile);
+
+        _sandTiles.Remove(sandTile);
+        _floor.Remove(sandTile);
+    }
+
+    void DropTileDown (GameObject tile)
+    {
+        tile.transform.localScale *= 0.99f;
+        Rigidbody currentRb = tile.AddComponent<Rigidbody>();
+        currentRb.detectCollisions = true;
+        StartCoroutine(
+            DelayTileDestruction(tile, 1.5f)
+        );
+    }
+
+    IEnumerator DelayTileDestruction(GameObject tile, float delayTime)
+    {
+        yield return new WaitForSeconds(delayTime);
+
+        try { Destroy(tile); } catch (Exception) { };
     }
 
     private void GameOver()
@@ -359,10 +402,12 @@ public class GameController : MonoBehaviour
     {
         DestroyAll(_floor);
         DestroyAll(_targetTiles);
+        DestroyAll(_sandTiles);
         DestroyAll(_flippers);
         DestroyAll(_passives);
 
         _floor = new();
+        _sandTiles = new();
         _targetTiles = new();
         _flippers = new();
         _passives = new();
@@ -380,7 +425,8 @@ public class GameController : MonoBehaviour
             for (int x = 0; x < width; x++)
             {
                 Vector3 location = new((x - shiftX) * _tileSize, 0f, (y - shiftY) * _tileSize);
-                switch (map[y, x])
+                TileType tileType = map[y, x];
+                switch (tileType)
                 {
                     case TileType.Flipping:
                         PutFlipperAt(location);
@@ -393,11 +439,9 @@ public class GameController : MonoBehaviour
                         break;
 
                     case TileType.Floor:
-                        PutFloorAt(location);
-                        break;
-
+                    case TileType.Sand:
                     case TileType.Target:
-                        PutFloorAt(location, true);
+                        PutFloorAt(location, tileType);
                         break;
 
                     default:
@@ -452,6 +496,7 @@ public class GameController : MonoBehaviour
                 map[y, x] = lines[y][x] switch
                 {
                     'X' => TileType.Floor,
+                    'S' => TileType.Sand,
                     'F' => TileType.Flipping,
                     'P' => TileType.Passive,
                     'T' => TileType.Target,
@@ -463,19 +508,28 @@ public class GameController : MonoBehaviour
         return map;
     }
 
-    private void PutFloorAt(Vector3 location, bool isTarget = false)
+    private void PutFloorAt(Vector3 location, TileType tileType = TileType.Floor)
     {
         location.y = -0.25f * _tileSize;
         GameObject tile = Instantiate(FloorTilePrefab, location, Quaternion.identity);
-        Material material = isTarget ? TargetMaterial : FloorMaterial;
+        Material material = tileType switch
+        {
+            TileType.Floor => FloorMaterial,
+            TileType.Sand => SandMaterial,
+            TileType.Target => TargetMaterial,
+            _ => FloorMaterial
+        };
         foreach (Transform child in tile.transform)
             child.gameObject.GetComponent<MeshRenderer>().material = material;
 
         _floor.Add(tile);
 
-        if (isTarget)
+        if (tileType == TileType.Target)
             _targetTiles.Add(tile);
+        else if (tileType == TileType.Sand)
+            _sandTiles.Add(tile);
     }
+
     private void PutFlipperAt(Vector3 location, bool isPassive = false)
     {
         location.y = 0.05f * _tileSize;

@@ -42,7 +42,7 @@ public class Level
     {
         _levelList.Add(new Level(
             "XXXX\n" +
-            "XFXX\n" +
+            "XFSX\n" +
             "XXTX\n" +
             "XXXX\n",
             "SQUARE"
