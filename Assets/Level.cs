@@ -84,5 +84,13 @@ public class Level
             "QUICKSAND"
         ));
 
+        _levelList.Add(new Level(
+            "XFXXXT\n" +
+            "XXXXTT\n" +
+            "XXXXXX\n" +
+            "PIXXXX\n" +
+            "XXXXXX\n",
+            "ICEBERG"
+        ));
     }
 }

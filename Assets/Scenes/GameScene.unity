@@ -2433,6 +2433,7 @@ MonoBehaviour:
   FlipTilePrefab: {fileID: 2965128951323548165, guid: 7df9b904c0cd61e48a7e930c7563c001, type: 3}
   FlippingMaterial: {fileID: 2100000, guid: dce42fdcb6802d241baec93da67a999b, type: 2}
   PassiveMaterial: {fileID: 2100000, guid: 7991a4837a32ac24a9fe06a26b789483, type: 2}
+  FrozenMaterial: {fileID: 2100000, guid: 14bf9c136381186419d28c77073aba67, type: 2}
   FloorMaterial: {fileID: 2100000, guid: a4a1647042ba2fc4a879156e66d46e9f, type: 2}
   TargetMaterial: {fileID: 2100000, guid: e02b3b5589d2b9e4bbba009aea15f8d3, type: 2}
   SandMaterial: {fileID: 2100000, guid: 12090f57b024b7449b0ecf5732418989, type: 2}

@@ -21,6 +21,7 @@ public class GameController : MonoBehaviour
 
     [SerializeField] Material FlippingMaterial;
     [SerializeField] Material PassiveMaterial;
+    [SerializeField] Material FrozenMaterial;
     [SerializeField] Material FloorMaterial;
     [SerializeField] Material TargetMaterial;
     [SerializeField] Material SandMaterial;
@@ -54,12 +55,13 @@ public class GameController : MonoBehaviour
     private List<GameObject> _targetTiles = null;
     private List<GameObject> _flippers = null;
     private List<GameObject> _passives = null;
+    private List<GameObject> _frozen = null;
 
     private TileType[,] _gameMap;
     private GameData _gameData;
 
     private enum GameState : byte { Init, Running, Win, Fail }
-    private enum TileType : byte { Hole, Flipping, Passive, Floor, Target, Sand }
+    private enum TileType : byte { Hole, Flipping, Passive, Floor, Target, Sand, Frozen }
 
     private void Awake()
     {
@@ -243,11 +245,11 @@ public class GameController : MonoBehaviour
         }
     }
 
-    IEnumerator Highlight(List<GameObject> endObjects)
+    IEnumerator RiseUp(GameObject[] objects, float riseHeight, float riseDuration, Action callback = null)
     {
 
-        float maxHeight = RiseHeight * _tileSize;
-        float riseVelocity = maxHeight / RiseDuration;
+        float maxHeight = riseHeight * _tileSize;
+        float riseVelocity = maxHeight / riseDuration;
         float totalHeight = 0;
         float lastTime = Time.time;
 
@@ -268,13 +270,14 @@ public class GameController : MonoBehaviour
                 totalHeight = maxHeight;
             }
 
-            foreach (GameObject go in endObjects)
+            foreach (GameObject go in objects)
             {
                 go.transform.position += Vector3.up * step;
             }
             yield return null;
 //            yield return new WaitForSeconds(0.01f);
         }
+        callback?.Invoke();
     }
 
     private void MergeAdjacentTiles()
@@ -357,6 +360,42 @@ public class GameController : MonoBehaviour
         _floor.Remove(sandTile);
     }
 
+    private void Unfreeze()
+    {
+        foreach (GameObject frozenTile in _frozen.ToArray())
+        {
+            foreach (GameObject flipper in _flippers)
+            {
+                float dist = Vector3.Distance(flipper.transform.position, frozenTile.transform.position);
+                if (dist < _tileSize)
+                    StartTileMelting(frozenTile);
+            }
+        }
+    }
+
+    private void StartTileMelting(GameObject tile)
+    {
+        //zmìnit materiál
+        tile.GetComponent<MeshRenderer>().material = PassiveMaterial;
+
+        //vyjet nahoru
+        StartCoroutine(
+            RiseUp(
+                new GameObject[] { tile }, 
+                0.1f - 0.01f, 
+                RiseDuration, 
+                () => {
+                    while(_gameState != GameState.Running) {}
+                    _frozen.Remove(tile);
+                    _passives.Add(tile);
+                }
+            )
+        );
+
+        //po dobìhnutí callback pøesune mezi pasivy
+
+    }
+
     void DropTileDown (GameObject tile)
     {
         tile.transform.localScale *= 0.99f;
@@ -405,12 +444,14 @@ public class GameController : MonoBehaviour
         DestroyAll(_sandTiles);
         DestroyAll(_flippers);
         DestroyAll(_passives);
+        DestroyAll(_frozen);
 
         _floor = new();
         _sandTiles = new();
         _targetTiles = new();
         _flippers = new();
         _passives = new();
+        _frozen = new();
 
         _gameState = GameState.Init;
         _gameData.CurrentFlips = 0;
@@ -429,12 +470,9 @@ public class GameController : MonoBehaviour
                 switch (tileType)
                 {
                     case TileType.Flipping:
-                        PutFlipperAt(location);
-                        PutFloorAt(location);
-                        break;
-
                     case TileType.Passive:
-                        PutFlipperAt(location, true);
+                    case TileType.Frozen:
+                        PutFlipperAt(location, tileType);
                         PutFloorAt(location);
                         break;
 
@@ -499,6 +537,7 @@ public class GameController : MonoBehaviour
                     'S' => TileType.Sand,
                     'F' => TileType.Flipping,
                     'P' => TileType.Passive,
+                    'I' => TileType.Frozen,
                     'T' => TileType.Target,
                     _ => TileType.Hole
                 };
@@ -530,23 +569,35 @@ public class GameController : MonoBehaviour
             _sandTiles.Add(tile);
     }
 
-    private void PutFlipperAt(Vector3 location, bool isPassive = false)
+    private void PutFlipperAt(Vector3 location, TileType tileType = TileType.Passive)
     {
-        location.y = 0.05f * _tileSize;
+        if (tileType == TileType.Frozen)
+            location.y = -0.05f * _tileSize + 0.01f;
+        else
+            location.y =  0.05f * _tileSize;
+
         GameObject tile = Instantiate(FlipTilePrefab, location, Quaternion.identity);
-        Material material = isPassive ? PassiveMaterial : FlippingMaterial;
+        Material material = tileType switch
+        {
+            TileType.Flipping => FlippingMaterial,
+            TileType.Passive => PassiveMaterial,
+            TileType.Frozen => FrozenMaterial,
+            _ => FlippingMaterial
+        };
         tile.GetComponent<MeshRenderer>().material = material;
 
-        if (isPassive)
-            _passives.Add(tile);
-        else
+        if (tileType == TileType.Flipping)
             _flippers.Add(tile);
+        else if (tileType == TileType.Passive)
+            _passives.Add(tile);
+        else if (tileType == TileType.Frozen)
+            _frozen.Add(tile);
     }
 
     private void Win()
     {
-        StartCoroutine(Highlight(_targetTiles));
-        StartCoroutine(Highlight(_flippers));
+        StartCoroutine(RiseUp(_targetTiles.ToArray(), RiseHeight, RiseDuration));
+        StartCoroutine(RiseUp(_flippers.ToArray(), RiseHeight, RiseDuration));
         _gameState = GameState.Win;
         _gameData.BestFlips = _gameData.CurrentFlips;
         _gameData.ResetCameraState();
@@ -594,6 +645,7 @@ public class GameController : MonoBehaviour
         var axis = Vector3.Cross(Vector3.up, direction);
 
         StartCoroutine(Flip(_flippers, anchor, axis));
+        Unfreeze();
     }
 
     private void ShowStartMessageBox()
