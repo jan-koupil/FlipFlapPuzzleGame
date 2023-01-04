@@ -59,6 +59,10 @@ public class BtnPanelController : MonoBehaviour
         {
             ZoomOut();
         }
+        else if (Input.GetKeyDown(KeyCode.Backspace))
+        {
+            RestartLevel();
+        }
 
     }
 
@@ -107,5 +111,11 @@ public class BtnPanelController : MonoBehaviour
     public void BackToMenu()
     {
         SceneManager.LoadScene("MainMenu");
+    }
+
+    public void RestartLevel()
+    {
+        _gameData.ShowStartMenu = false;
+        SceneManager.LoadScene("GameScene");
     }
 }

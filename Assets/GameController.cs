@@ -60,7 +60,7 @@ public class GameController : MonoBehaviour
     private TileType[,] _gameMap;
     private GameData _gameData;
 
-    private enum GameState : byte { Init, Running, Win, Fail }
+    private enum GameState : byte { Init, Running, Win, Fail, Paused }
     private enum TileType : byte { Hole, Flipping, Passive, Floor, Target, Sand, Frozen }
 
     private void Awake()
@@ -84,7 +84,10 @@ public class GameController : MonoBehaviour
         _gameMap = ParseTextMap(_level.TextMap);
 
         SetUpGame(_gameMap);
-        ShowStartMessageBox();
+        if (_gameData.ShowStartMenu)
+            ShowStartMessageBox();
+        else
+            StartGame();
     }
 
     // Update is called once per frame
@@ -108,14 +111,14 @@ public class GameController : MonoBehaviour
             _cameraPivot.transform.position = newPosition;
         }
 
-        if (
-            Input.GetKeyDown(KeyCode.Backspace) && 
-            _gameState != GameState.Win 
-        )
-        { 
-            SetUpGame(_gameMap);
-            StartGame();
-        }
+        //if (
+        //    Input.GetKeyDown(KeyCode.Backspace) && 
+        //    _gameState != GameState.Win 
+        //)
+        //{
+        //    _gameData.ShowStartMenu = false;
+        //    RestartGame();
+        //}
 
         if (_isRolling || _gameState != GameState.Running) 
             return;
@@ -431,9 +434,15 @@ public class GameController : MonoBehaviour
         var fdbCtrl = fdb.GetComponent<FinalDialogBoxController>();
 
         if (_gameState == GameState.Win)
+        {
             fdbCtrl.SetModeVictory();
+            _gameData.ShowStartMenu = true;
+        }
         else if (_gameState == GameState.Fail)
+        {
             fdbCtrl.SetModeGameOver();
+            _gameData.ShowStartMenu = false;
+        }
     }
 
 
@@ -497,6 +506,12 @@ public class GameController : MonoBehaviour
         _gameState = GameState.Running;
 
     }
+
+    //public void RestartGame()
+    //{
+    //    SetUpGame(_gameMap);
+    //    StartGame();
+    //}
 
     private void DestroyAll(List<GameObject> objects)
     {

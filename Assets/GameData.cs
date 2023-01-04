@@ -40,6 +40,8 @@ public class GameData : MonoBehaviour
         } 
     }
 
+    public bool ShowStartMenu { get; set; } = true;
+
     [SerializeField] int MinZoom = 1;
     [SerializeField] int MaxZoom = 10;
     [SerializeField] int InitZoom = 5;
