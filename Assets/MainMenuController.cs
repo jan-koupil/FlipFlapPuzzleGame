@@ -13,6 +13,7 @@ public class MainMenuController : MonoBehaviour
 
     private GameData _gameData;
     private Color _defaultBgColor;
+    private Color _selectedBgColor;
     private TMP_Text _levelText;
     private TMP_InputField _codeInput;
 
@@ -34,6 +35,7 @@ public class MainMenuController : MonoBehaviour
     void Start()
     {
         _defaultBgColor = _codeInput.colors.normalColor;
+        _selectedBgColor = _codeInput.colors.selectedColor;
         _gameData.ResetCameraState();
         RenderLevelNo();
         //EventSystem.current.SetSelectedGameObject(transform.Find("StartBtn").gameObject);
@@ -62,6 +64,13 @@ public class MainMenuController : MonoBehaviour
                 UIIndex++;
                 UIIndex %= _UISelectables.Count;
                 EventSystem.current.SetSelectedGameObject(_UISelectables[UIIndex]);
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.Return))
+        {
+            if (EventSystem.current.currentSelectedGameObject == _codeInput.gameObject)
+            {
+                Load();
             }
         }
 
@@ -98,11 +107,12 @@ public class MainMenuController : MonoBehaviour
         {
 
             ColorBlock cb = _codeInput.colors;
-            cb.normalColor = _defaultBgColor;
+            //cb.normalColor = _defaultBgColor;
+            cb.normalColor = _selectedBgColor;
             _codeInput.colors = cb;
 
             _gameData.Level = levelNo;
-            _codeInput.text = "";
+            //_codeInput.text = "";
             RenderLevelNo();
             EventSystem.current.SetSelectedGameObject(_UISelectables[0]); //Focus Play Btn
         }
@@ -110,7 +120,10 @@ public class MainMenuController : MonoBehaviour
         {
             ColorBlock cb = _codeInput.colors;
             cb.normalColor = new Color(255, 0, 0);
+            cb.selectedColor = new Color(255, 0, 0);
             _codeInput.colors = cb;
+            EventSystem.current.SetSelectedGameObject(_codeInput.gameObject);
+            _codeInput.caretPosition = _codeInput.text.Length - 1;
         }
     }
 
