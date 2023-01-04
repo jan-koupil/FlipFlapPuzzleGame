@@ -47,33 +47,50 @@ public class MainMenuController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Tab) && Input.GetKey(KeyCode.LeftShift))
         {
-            int UIIndex = FindSelectedIndex();
-            if (UIIndex > -1)
-            {
-                UIIndex--;
-                if (UIIndex < 0)
-                    UIIndex += _UISelectables.Count;
-                EventSystem.current.SetSelectedGameObject(_UISelectables[UIIndex]);
-            }
+            SelectPreviousElement();
         }
         else if (Input.GetKeyDown(KeyCode.Tab))
         {
-            int UIIndex = FindSelectedIndex();
-            if (UIIndex > -1)
-            {
-                UIIndex++;
-                UIIndex %= _UISelectables.Count;
-                EventSystem.current.SetSelectedGameObject(_UISelectables[UIIndex]);
-            }
+            SelectNextElement();
         }
-        else if (Input.GetKeyDown(KeyCode.Return))
+        else if (EventSystem.current.currentSelectedGameObject == _codeInput.gameObject)
         {
-            if (EventSystem.current.currentSelectedGameObject == _codeInput.gameObject)
+            if (Input.GetKeyDown(KeyCode.Return))
             {
                 Load();
             }
+            else if (Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                SelectNextElement();
+            }
+            else if (Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                SelectPreviousElement();
+            }
         }
+    }
 
+    private void SelectPreviousElement()
+    {
+        int UIIndex = FindSelectedIndex();
+        if (UIIndex > -1)
+        {
+            UIIndex--;
+            if (UIIndex < 0)
+                UIIndex += _UISelectables.Count;
+            EventSystem.current.SetSelectedGameObject(_UISelectables[UIIndex]);
+        }
+    }
+
+    private void SelectNextElement()
+    {
+        int UIIndex = FindSelectedIndex();
+        if (UIIndex > -1)
+        {
+            UIIndex++;
+            UIIndex %= _UISelectables.Count;
+            EventSystem.current.SetSelectedGameObject(_UISelectables[UIIndex]);
+        }
     }
 
     public void StartGame()
