@@ -8,6 +8,8 @@ public class Level
     public string TextMap { get; private set; }
     public string Code { get; private set; }
 
+    public static int MaxLevel => _levelList.Count;
+
     static Level()
     {
         InitLevels();
@@ -86,9 +88,9 @@ public class Level
 
         _levelList.Add(new Level(
             "XFXXXT\n" +
-            "XXXXTT\n" +
-            "XXXXXX\n" +
-            "PIXXXX\n" +
+            "XXX TT\n" +
+            "SXXXXX\n" +
+            "PISXXX\n" +
             "XXXXXX\n",
             "ICEBERG"
         ));

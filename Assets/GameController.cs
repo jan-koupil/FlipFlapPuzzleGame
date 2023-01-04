@@ -430,6 +430,11 @@ public class GameController : MonoBehaviour
         if (_gameState != GameState.Win && _gameState != GameState.Fail)
             yield break;
 
+        if (_gameData.Level > Level.MaxLevel)
+        { 
+            _gameData.Level--;
+            SceneManager.LoadScene("WinGameScene");
+        }
 
         GameObject igdb = Instantiate(InGameDialogBoxPrefab, MessageBoxCanvas.transform);
         var igdbCtrl = igdb.GetComponent<InGameDialogBoxController>();
