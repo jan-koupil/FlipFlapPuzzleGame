@@ -16,6 +16,9 @@ public class BtnPanelController : MonoBehaviour
     private GameObject _zoomOutBtn;
     private GameObject _camLockBtn;
 
+    List<GameObject> _allButtons = new List<GameObject>();
+
+
     private void Awake()
     {
         _gameData = GameObject.FindObjectOfType<GameData>();
@@ -27,19 +30,28 @@ public class BtnPanelController : MonoBehaviour
         _zoomInBtn = transform.Find("ZoomInBtn").gameObject;
         _zoomOutBtn = transform.Find("ZoomOutBtn").gameObject;
         _camLockBtn = transform.Find("CamLockBtn").gameObject;
+        FindAllChildren();
         SetZoom();
         SetCamToggleColor();
     }
 
-    //public void DisableAll()
-    //{
+    private void FindAllChildren()
+    {
+        for (int i = 0; i < transform.childCount; i++)
+            _allButtons.Add(transform.GetChild(i).gameObject);
+    }
 
-    //}
+    public void DisableAll()
+    {
+        //_allButtons.ForEach(b => { b.SetActive(false); });
+        _allButtons.ForEach(b => { b.GetComponent<Button>().interactable = false; });        
+    }
 
-    //public void EnableAll()
-    //{
-
-    //}
+    public void EnableAll()
+    {
+        //_allButtons.ForEach(b => { b.SetActive(true); });
+        _allButtons.ForEach(b => { b.GetComponent<Button>().interactable = true; });
+    }
 
     public void Update()
     {

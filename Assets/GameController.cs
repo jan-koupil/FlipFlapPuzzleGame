@@ -32,10 +32,11 @@ public class GameController : MonoBehaviour
     [SerializeField] float FinalMenuDelay = 1.5f;
 
     [SerializeField] GameObject MessageBoxCanvas;
-    [SerializeField] GameObject FinalDialogBoxPrefab;
+    [SerializeField] GameObject InGameDialogBoxPrefab;
     [SerializeField] GameObject StartMessageBoxPrefab;
     [SerializeField] GameObject ControlPanelPrefab;
 
+    [SerializeField] GameObject ButtonPanel;
     [SerializeField] Camera MainCamera;
     private GameObject _cameraPivot;
 
@@ -111,14 +112,11 @@ public class GameController : MonoBehaviour
             _cameraPivot.transform.position = newPosition;
         }
 
-        //if (
-        //    Input.GetKeyDown(KeyCode.Backspace) && 
-        //    _gameState != GameState.Win 
-        //)
-        //{
-        //    _gameData.ShowStartMenu = false;
-        //    RestartGame();
-        //}
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            ShowInGameDialog();
+            return;
+        }
 
         if (_isRolling || _gameState != GameState.Running) 
             return;
@@ -425,26 +423,28 @@ public class GameController : MonoBehaviour
 
     IEnumerator DelayMenuShow(float delayTime)
     {
+        DisableControlButtons();
+
         yield return new WaitForSeconds(delayTime);
 
         if (_gameState != GameState.Win && _gameState != GameState.Fail)
             yield break;
 
-        GameObject fdb = Instantiate(FinalDialogBoxPrefab, MessageBoxCanvas.transform);
-        var fdbCtrl = fdb.GetComponent<FinalDialogBoxController>();
+
+        GameObject igdb = Instantiate(InGameDialogBoxPrefab, MessageBoxCanvas.transform);
+        var igdbCtrl = igdb.GetComponent<InGameDialogBoxController>();
 
         if (_gameState == GameState.Win)
         {
-            fdbCtrl.SetModeVictory();
+            igdbCtrl.SetModeVictory();
             _gameData.ShowStartMenu = true;
         }
         else if (_gameState == GameState.Fail)
         {
-            fdbCtrl.SetModeGameOver();
+            igdbCtrl.SetModeGameOver();
             _gameData.ShowStartMenu = false;
         }
     }
-
 
     private void SetUpGame(TileType[,] map)
     {
@@ -503,15 +503,10 @@ public class GameController : MonoBehaviour
         if (Application.isMobilePlatform)
             ShowControlPanel();
 
+        _gameData.ShowStartMenu = true;
         _gameState = GameState.Running;
 
     }
-
-    //public void RestartGame()
-    //{
-    //    SetUpGame(_gameMap);
-    //    StartGame();
-    //}
 
     private void DestroyAll(List<GameObject> objects)
     {
@@ -665,14 +660,16 @@ public class GameController : MonoBehaviour
 
     private void ShowStartMessageBox()
     {
+        DisableControlButtons();
+
         GameObject smb = Instantiate(StartMessageBoxPrefab, MessageBoxCanvas.transform);
-        
         var smbCtrl = smb.GetComponent<StartMessageBoxController>();
         smbCtrl.LevelNo = _gameData.Level;
         smbCtrl.LevelCode = _level.Code;
 
         smbCtrl.OnClose = () => {
             StartGame();
+            EnableControlButtons();
         };
     }
 
@@ -686,5 +683,34 @@ public class GameController : MonoBehaviour
         panelController.UpAction = () => StartFlipping(Vector3.forward);
         panelController.LeftAction = () => StartFlipping(Vector3.left);
         panelController.RightAction = () => StartFlipping(Vector3.right);
+    }
+
+    public void ShowInGameDialog()
+    {
+        if (_gameState != GameState.Running)
+            return;
+
+        _gameState = GameState.Paused;
+        DisableControlButtons();
+
+        GameObject igdb = Instantiate(InGameDialogBoxPrefab, MessageBoxCanvas.transform);
+        var igdbCtrl = igdb.GetComponent<InGameDialogBoxController>();
+        igdbCtrl.SetModePaused(_gameData.Level, _level.Code);
+        igdbCtrl.OnClose = () =>
+        {
+            _gameState = GameState.Running;
+            EnableControlButtons();
+        };
+    }
+
+    private void EnableControlButtons()
+    {
+        var btnPanelCtrl = ButtonPanel.GetComponent<BtnPanelController>();
+        btnPanelCtrl.EnableAll();
+    }
+    private void DisableControlButtons()
+    {
+        var btnPanelCtrl = ButtonPanel.GetComponent<BtnPanelController>();
+        btnPanelCtrl.DisableAll();
     }
 }

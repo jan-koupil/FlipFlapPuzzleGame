@@ -2008,9 +2008,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1329853108}
-        m_TargetAssemblyTypeName: BtnPanelController, Assembly-CSharp
-        m_MethodName: BackToMenu
+      - m_Target: {fileID: 1986579176}
+        m_TargetAssemblyTypeName: GameController, Assembly-CSharp
+        m_MethodName: ShowPauseDialog
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2594,9 +2594,10 @@ MonoBehaviour:
   RiseHeight: 0.15
   FinalMenuDelay: 1
   MessageBoxCanvas: {fileID: 524088942}
-  FinalDialogBoxPrefab: {fileID: 6712589084834427548, guid: 57994cd827216dc47a2280541db1c172, type: 3}
+  InGameDialogBoxPrefab: {fileID: 6712589084834427548, guid: 81fe1b698f718404caf474fae424b187, type: 3}
   StartMessageBoxPrefab: {fileID: 5954792582249369623, guid: de687b17283911248a3d5ee1b0207b32, type: 3}
   ControlPanelPrefab: {fileID: 8073855034508097696, guid: 5e103df62082d19439dcd6060c02dbee, type: 3}
+  ButtonPanel: {fileID: 1329853106}
   MainCamera: {fileID: 1601828016}
 --- !u!1 &2133983356
 GameObject:

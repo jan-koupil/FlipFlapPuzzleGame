@@ -1,21 +1,22 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-//using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
-public class FinalDialogBoxController : MonoBehaviour
-{  
+public class InGameDialogBoxController : MonoBehaviour
+{
     private TMP_Text _message;
     private TMP_Text _continueText;
-    
+    public Action OnClose = null;
+
     private List<GameObject> _UISelectables = new List<GameObject>();
 
+    private GameObject _continueBtn;
 
-    private void Awake()
+    public void Awake()
     {
         _message = transform.Find("MessageText").gameObject.GetComponent<TMP_Text>();
         _continueText = transform.Find("ContinueBtn/ContinueText").gameObject.GetComponent<TMP_Text>();
@@ -23,7 +24,6 @@ public class FinalDialogBoxController : MonoBehaviour
         _UISelectables.Add(transform.Find("ContinueBtn").gameObject);
         _UISelectables.Add(transform.Find("BackToMenuBtn").gameObject);
     }
-
     // Start is called before the first frame update
     void Start()
     {
@@ -37,7 +37,7 @@ public class FinalDialogBoxController : MonoBehaviour
             if (UIIndex > -1)
             {
                 UIIndex--;
-                if (UIIndex < 0) 
+                if (UIIndex < 0)
                     UIIndex += _UISelectables.Count;
                 EventSystem.current.SetSelectedGameObject(_UISelectables[UIIndex]);
             }
@@ -57,16 +57,24 @@ public class FinalDialogBoxController : MonoBehaviour
     {
         _message.text = "Game Over";
         _continueText.text = "Try again";
+        OnClose = () => SceneManager.LoadScene("GameScene");
     }
     public void SetModeVictory()
     {
         _message.text = "Good job!";
         _continueText.text = "Next level";
+        OnClose = () => SceneManager.LoadScene("GameScene");
     }
 
-    public void PlayLevel()
+    public void SetModePaused(int level, string code)
     {
-        SceneManager.LoadScene("GameScene");
+        _message.text = $"Game paused\nLevel {level}, code {code}";
+        _continueText.text = "Continue";
+    }
+    public void OnCloseBtnClick()
+    {
+        OnClose?.Invoke();
+        Destroy(gameObject);
     }
     public void BackToMenu()
     {
@@ -77,4 +85,5 @@ public class FinalDialogBoxController : MonoBehaviour
         var selected = EventSystem.current.currentSelectedGameObject;
         return _UISelectables.IndexOf(selected);
     }
+
 }

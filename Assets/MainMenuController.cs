@@ -12,7 +12,7 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] GameObject HelpWindow;
 
     private GameData _gameData;
-    private Color _defaultBgColor;
+    //private Color _defaultBgColor;
     private Color _selectedBgColor;
     private TMP_Text _levelText;
     private TMP_InputField _codeInput;
@@ -34,7 +34,7 @@ public class MainMenuController : MonoBehaviour
 
     void Start()
     {
-        _defaultBgColor = _codeInput.colors.normalColor;
+        //_defaultBgColor = _codeInput.colors.normalColor;
         _selectedBgColor = _codeInput.colors.selectedColor;
         _gameData.ResetCameraState();
         RenderLevelNo();
