@@ -91,7 +91,6 @@ public class GameController : MonoBehaviour
             StartGame();
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (!_gameData.LockedCamera && _flippers.Count > 0)
@@ -276,7 +275,6 @@ public class GameController : MonoBehaviour
                 go.transform.position += Vector3.up * step;
             }
             yield return null;
-//            yield return new WaitForSeconds(0.01f);
         }
         callback?.Invoke();
     }
@@ -339,7 +337,6 @@ public class GameController : MonoBehaviour
         GameOver();
     }
 
-
     private void ReleaseSand()
     {
         foreach (GameObject sandTile in _sandTiles.ToArray())
@@ -380,20 +377,19 @@ public class GameController : MonoBehaviour
         tile.GetComponent<MeshRenderer>().material = PassiveMaterial;
 
         //vyjet nahoru
+        //po dobìhnutí callback pøesune zmrzlý mezi pasivy
         StartCoroutine(
             RiseUp(
                 new GameObject[] { tile }, 
                 0.1f - 0.01f, 
                 RiseDuration, 
                 () => {
-                    while(_gameState != GameState.Running) {}
                     _frozen.Remove(tile);
                     _passives.Add(tile);
                 }
             )
         );
 
-        //po dobìhnutí callback pøesune mezi pasivy
 
     }
 
@@ -419,7 +415,6 @@ public class GameController : MonoBehaviour
         _gameState = GameState.Fail;
         StartCoroutine(DelayMenuShow(FinalMenuDelay));
     }
-
 
     IEnumerator DelayMenuShow(float delayTime)
     {
@@ -554,7 +549,7 @@ public class GameController : MonoBehaviour
                     'P' => TileType.Passive,
                     'I' => TileType.Frozen,
                     'T' => TileType.Target,
-                    _ => TileType.Hole
+                     _  => TileType.Hole
                 };
             }
         }
@@ -713,6 +708,7 @@ public class GameController : MonoBehaviour
         var btnPanelCtrl = ButtonPanel.GetComponent<BtnPanelController>();
         btnPanelCtrl.EnableAll();
     }
+
     private void DisableControlButtons()
     {
         var btnPanelCtrl = ButtonPanel.GetComponent<BtnPanelController>();
