@@ -117,7 +117,7 @@ public class MainMenuController : MonoBehaviour
 
     public void Load()
     {
-        string code = _codeInput.text.ToUpper();
+        string code = _codeInput.text.ToUpper().Trim();
         int levelNo = Level.FindLevel(code);
         //Debug.Log(_codeInput.colors.normalColor);
         if (levelNo > 0)
