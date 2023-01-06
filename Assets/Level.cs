@@ -42,6 +42,14 @@ public class Level
 
     private static void InitLevels()
     {
+        //_levelList.Add(new Level(
+        //    "F   \n" +
+        //    "    \n" +
+        //    "    \n" +
+        //    "   T\n",
+        //    "PIN"
+        //));
+
         _levelList.Add(new Level(
             "XXXX\n" +
             "XFXX\n" +

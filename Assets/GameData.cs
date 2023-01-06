@@ -94,9 +94,16 @@ public class GameData : MonoBehaviour
     private void InitBestFlips()
     {
         if (File.Exists(_saveGameFullPath))
-        { 
-            string json = File.ReadAllText(_saveGameFullPath);
-            _bestFlipList = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
+        {
+            try
+            {
+                string json = File.ReadAllText(_saveGameFullPath);
+                _bestFlipList = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
+            }
+            catch
+            {
+                _bestFlipList = new();
+            }
         }
         else
             _bestFlipList = new();
@@ -105,6 +112,12 @@ public class GameData : MonoBehaviour
     private void SaveBestFlips()
     {
         string json = JsonConvert.SerializeObject(_bestFlipList);
-        File.WriteAllTextAsync(_saveGameFullPath, json);
+        try 
+        { 
+            if (Application.platform != RuntimePlatform.WebGLPlayer)
+                File.WriteAllTextAsync(_saveGameFullPath, json);
+        }
+        catch
+        {}
     }
 }
